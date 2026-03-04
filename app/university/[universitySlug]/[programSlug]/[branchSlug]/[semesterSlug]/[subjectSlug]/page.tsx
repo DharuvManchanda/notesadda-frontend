@@ -4,7 +4,7 @@ import { Container } from '@/components/shared/Container';
 import { Section } from '@/components/shared/Section';
 import { PageHeader } from '@/components/shared/PageHeader';
 import { Breadcrumb } from '@/components/shared/Breadcrumb';
-import { NoteCard } from '@/components/cards/NoteCard';
+import { NotesList } from '@/components/shared/NotesList';
 import { universities } from '@/lib/mockData';
 import { resolveRoute, generateBreadcrumbs } from '@/lib/routeHelpers';
 import { BookMarked } from 'lucide-react';
@@ -130,27 +130,17 @@ export default async function SubjectPage({ params }: SubjectPageProps) {
           <Container>
             <h2 className="text-3xl md:text-4xl font-bold mb-8">Study Notes</h2>
 
-            {subject.notes.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {subject.notes.map((note) => (
-                  <NoteCard
-                    key={note.id}
-                    note={note}
-                    universitySlug={universitySlug}
-                    programSlug={programSlug}
-                    branchSlug={branchSlug}
-                    semesterNumber={semester?.number || 1}
-                    subjectSlug={subject.slug}
-                  />
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-12">
-                <p className="text-muted-foreground text-lg">No notes available for this subject yet.</p>
-              </div>
-            )}
+            <NotesList
+              notes={subject.notes}
+              universitySlug={universitySlug}
+              programSlug={programSlug}
+              branchSlug={branchSlug}
+              semesterNumber={semester?.number || 1}
+              subjectSlug={subject.slug}
+            />
           </Container>
         </Section>
+
       </main>
       <Footer />
     </>
