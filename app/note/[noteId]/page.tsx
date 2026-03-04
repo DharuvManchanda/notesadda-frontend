@@ -18,23 +18,9 @@ interface NotePageProps {
 }
 
 export async function generateStaticParams() {
-  const params: Array<{ noteId: string }> = [];
-
-  universities.forEach((uni) => {
-    uni.programs.forEach((prog) => {
-      prog.branches.forEach((branch) => {
-        branch.semesters.forEach((semester) => {
-          semester.subjects.forEach((subject) => {
-            subject.notes.forEach((note) => {
-              params.push({ noteId: note.id });
-            });
-          });
-        });
-      });
-    });
-  });
-
-  return params;
+  // Return empty array to avoid generating thousands of static pages at build time.
+  // Pages will be rendered on-demand (SSR) when accessed.
+  return [];
 }
 
 export async function generateMetadata({ params }: NotePageProps) {
@@ -105,19 +91,19 @@ export default async function NotePage({ params }: NotePageProps) {
                 { label: 'Explore', href: '/explore' },
                 ...(subjectInfo
                   ? [
-                      {
-                        label: 'Universities',
-                        href: `/university/${subjectInfo.universitySlug}`,
-                      },
-                      {
-                        label: 'Programs',
-                        href: `/university/${subjectInfo.universitySlug}/${subjectInfo.programSlug}`,
-                      },
-                      {
-                        label: 'Branches',
-                        href: `/university/${subjectInfo.universitySlug}/${subjectInfo.programSlug}/${subjectInfo.branchSlug}`,
-                      },
-                    ]
+                    {
+                      label: 'Universities',
+                      href: `/university/${subjectInfo.universitySlug}`,
+                    },
+                    {
+                      label: 'Programs',
+                      href: `/university/${subjectInfo.universitySlug}/${subjectInfo.programSlug}`,
+                    },
+                    {
+                      label: 'Branches',
+                      href: `/university/${subjectInfo.universitySlug}/${subjectInfo.programSlug}/${subjectInfo.branchSlug}`,
+                    },
+                  ]
                   : []),
                 { label: note.title },
               ]}
