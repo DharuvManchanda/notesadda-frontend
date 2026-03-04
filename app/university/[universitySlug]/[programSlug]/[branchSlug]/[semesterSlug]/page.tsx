@@ -16,12 +16,12 @@ interface SemesterPageProps {
     universitySlug: string;
     programSlug: string;
     branchSlug: string;
-    number: string;
+    semesterSlug: string;
   }>;
 }
 
 export async function generateStaticParams() {
-  const params: Array<{ universitySlug: string; programSlug: string; branchSlug: string; number: string }> = [];
+  const params: Array<{ universitySlug: string; programSlug: string; branchSlug: string; semesterSlug: string }> = [];
   universities.forEach((uni) => {
     uni.programs.forEach((prog) => {
       prog.branches.forEach((branch) => {
@@ -30,7 +30,7 @@ export async function generateStaticParams() {
             universitySlug: uni.slug,
             programSlug: prog.slug,
             branchSlug: branch.slug,
-            number: semester.number.toString(),
+            semesterSlug: `semester-${semester.number}`,
           });
         });
       });
@@ -40,9 +40,9 @@ export async function generateStaticParams() {
 }
 
 export async function generateMetadata({ params }: SemesterPageProps) {
-  const { universitySlug, programSlug, branchSlug, number } = await params;
-  const resolved = resolveRoute({ universitySlug, programSlug, branchSlug, number });
-  
+  const { universitySlug, programSlug, branchSlug, semesterSlug } = await params;
+  const resolved = resolveRoute({ universitySlug, programSlug, branchSlug, semesterSlug });
+
   if (!resolved.semester) {
     return { title: 'Semester Not Found' };
   }
@@ -54,12 +54,12 @@ export async function generateMetadata({ params }: SemesterPageProps) {
 }
 
 export default async function SemesterPage({ params }: SemesterPageProps) {
-  const { universitySlug, programSlug, branchSlug, number } = await params;
+  const { universitySlug, programSlug, branchSlug, semesterSlug } = await params;
   const resolved = resolveRoute({
     universitySlug,
     programSlug,
     branchSlug,
-    number,
+    semesterSlug,
   });
 
   if (!resolved.semester) {
@@ -70,7 +70,7 @@ export default async function SemesterPage({ params }: SemesterPageProps) {
   const semester = resolved.semester;
 
   const breadcrumbs = generateBreadcrumbs(
-    { universitySlug, programSlug, branchSlug, number },
+    { universitySlug, programSlug, branchSlug, semesterSlug },
     resolved
   );
 

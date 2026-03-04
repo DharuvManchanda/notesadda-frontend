@@ -14,7 +14,7 @@ interface SubjectPageProps {
     universitySlug: string;
     programSlug: string;
     branchSlug: string;
-    number: string;
+    semesterSlug: string;
     subjectSlug: string;
   }>;
 }
@@ -24,7 +24,7 @@ export async function generateStaticParams() {
     universitySlug: string;
     programSlug: string;
     branchSlug: string;
-    number: string;
+    semesterSlug: string;
     subjectSlug: string;
   }> = [];
 
@@ -37,7 +37,7 @@ export async function generateStaticParams() {
               universitySlug: uni.slug,
               programSlug: prog.slug,
               branchSlug: branch.slug,
-              number: semester.number.toString(),
+              semesterSlug: `semester-${semester.number}`,
               subjectSlug: subject.slug,
             });
           });
@@ -50,8 +50,8 @@ export async function generateStaticParams() {
 }
 
 export async function generateMetadata({ params }: SubjectPageProps) {
-  const { universitySlug, programSlug, branchSlug, number, subjectSlug } = await params;
-  const { university, subject } = resolveRoute({ universitySlug, programSlug, branchSlug, number, subjectSlug });
+  const { universitySlug, programSlug, branchSlug, semesterSlug, subjectSlug } = await params;
+  const { university, subject } = resolveRoute({ universitySlug, programSlug, branchSlug, semesterSlug, subjectSlug });
 
   return {
     title: `${subject!.name} - ${subject!.code} - StudyHub`,
@@ -60,17 +60,21 @@ export async function generateMetadata({ params }: SubjectPageProps) {
 }
 
 export default async function SubjectPage({ params }: SubjectPageProps) {
-  const { universitySlug, programSlug, branchSlug, number, subjectSlug } = await params;
+  const { universitySlug, programSlug, branchSlug, semesterSlug, subjectSlug } = await params;
   const { university, program, branch, semester, subject } = resolveRoute({
     universitySlug,
     programSlug,
     branchSlug,
-    number,
+    semesterSlug,
     subjectSlug,
   });
 
+  if (!semester || !subject) {
+    return null;
+  }
+
   const breadcrumbs = generateBreadcrumbs(
-    { universitySlug, programSlug, branchSlug, number, subjectSlug },
+    { universitySlug, programSlug, branchSlug, semesterSlug, subjectSlug },
     { university, program, branch, semester, subject }
   );
 
@@ -107,7 +111,7 @@ export default async function SubjectPage({ params }: SubjectPageProps) {
                 </div>
                 <div>
                   <p className="text-muted-foreground">Semester</p>
-                  <p className="font-semibold">{semesterNumber}</p>
+                  <p className="font-semibold">{semester?.number}</p>
                 </div>
                 <div>
                   <p className="text-muted-foreground">Branch</p>
@@ -135,7 +139,7 @@ export default async function SubjectPage({ params }: SubjectPageProps) {
                     universitySlug={universitySlug}
                     programSlug={programSlug}
                     branchSlug={branchSlug}
-                    semesterNumber={semesterNumber}
+                    semesterNumber={semester?.number || 1}
                     subjectSlug={subject.slug}
                   />
                 ))}

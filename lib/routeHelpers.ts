@@ -14,7 +14,7 @@ export interface RouteParams {
   universitySlug: string;
   programSlug: string;
   branchSlug: string;
-  number?: string;
+  semesterSlug?: string;
   subjectSlug?: string;
 }
 
@@ -31,7 +31,7 @@ export interface ResolvedRoute {
  * Throws notFound() if any entity is not found
  */
 export function resolveRoute(params: Partial<RouteParams>): ResolvedRoute {
-  const { universitySlug, programSlug, branchSlug, number, subjectSlug } = params;
+  const { universitySlug, programSlug, branchSlug, semesterSlug, subjectSlug } = params;
 
   if (!universitySlug) notFound();
   if (!programSlug) notFound();
@@ -48,9 +48,9 @@ export function resolveRoute(params: Partial<RouteParams>): ResolvedRoute {
 
   const resolved: ResolvedRoute = { university, program, branch };
 
-  // Optional: resolve semester if number provided
-  if (number !== undefined && number !== null && number !== '') {
-    const semesterNumber = parseInt(number, 10);
+  if (semesterSlug !== undefined && semesterSlug !== null && semesterSlug !== '') {
+    const numberStr = semesterSlug.replace('semester-', '');
+    const semesterNumber = parseInt(numberStr, 10);
     const semester = branch.semesters.find((s) => s.number === semesterNumber);
     if (!semester) notFound();
     resolved.semester = semester;
@@ -70,7 +70,7 @@ export function resolveRoute(params: Partial<RouteParams>): ResolvedRoute {
  * Generates breadcrumb items for any route level
  */
 export function generateBreadcrumbs(params: Partial<RouteParams>, resolved: ResolvedRoute) {
-  const { universitySlug, programSlug, branchSlug, number, subjectSlug } = params;
+  const { universitySlug, programSlug, branchSlug, semesterSlug, subjectSlug } = params;
   const { university, program, branch, semester, subject } = resolved;
 
   const items = [
@@ -90,7 +90,7 @@ export function generateBreadcrumbs(params: Partial<RouteParams>, resolved: Reso
   if (subject) {
     items.push({
       label: subject.name,
-      href: `/university/${universitySlug}/${programSlug}/${branchSlug}/semester-${number}/${subjectSlug}`,
+      href: `/university/${universitySlug}/${programSlug}/${branchSlug}/${semesterSlug}/${subjectSlug}`,
     });
   }
 

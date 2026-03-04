@@ -16,7 +16,7 @@ interface NoteSEORouteProps {
     universitySlug: string;
     programSlug: string;
     branchSlug: string;
-    number: string;
+    semesterSlug: string;
     subjectSlug: string;
     noteSlug: string;
   }>;
@@ -27,7 +27,7 @@ export async function generateStaticParams() {
     universitySlug: string;
     programSlug: string;
     branchSlug: string;
-    number: string;
+    semesterSlug: string;
     subjectSlug: string;
     noteSlug: string;
   }> = [];
@@ -42,7 +42,7 @@ export async function generateStaticParams() {
                 universitySlug: uni.slug,
                 programSlug: prog.slug,
                 branchSlug: branch.slug,
-                number: semester.number.toString(),
+                semesterSlug: `semester-${semester.number}`,
                 subjectSlug: subject.slug,
                 noteSlug: note.slug,
               });
@@ -57,11 +57,12 @@ export async function generateStaticParams() {
 }
 
 export async function generateMetadata({ params }: NoteSEORouteProps) {
-  const { universitySlug, programSlug, branchSlug, number, subjectSlug, noteSlug } = await params;
+  const { universitySlug, programSlug, branchSlug, semesterSlug, subjectSlug, noteSlug } = await params;
   const university = getUniversityBySlug(universitySlug);
   const program = university ? getProgramBySlug(university, programSlug) : null;
   const branch = program ? getBranchBySlug(program, branchSlug) : null;
-  const semester = branch?.semesters.find((s) => s.number === parseInt(number));
+  const semesterNumber = parseInt(semesterSlug.replace('semester-', ''), 10);
+  const semester = branch?.semesters.find((s) => s.number === semesterNumber);
   const subject = semester?.subjects.find((s) => s.slug === subjectSlug);
   const note = subject ? getNoteBySlug(subject, noteSlug) : null;
 
@@ -79,11 +80,12 @@ export async function generateMetadata({ params }: NoteSEORouteProps) {
 }
 
 export default async function NoteSEOPage({ params }: NoteSEORouteProps) {
-  const { universitySlug, programSlug, branchSlug, number, subjectSlug, noteSlug } = await params;
+  const { universitySlug, programSlug, branchSlug, semesterSlug, subjectSlug, noteSlug } = await params;
   const university = getUniversityBySlug(universitySlug);
   const program = university ? getProgramBySlug(university, programSlug) : null;
   const branch = program ? getBranchBySlug(program, branchSlug) : null;
-  const semester = branch?.semesters.find((s) => s.number === parseInt(number));
+  const semesterNumber = parseInt(semesterSlug.replace('semester-', ''), 10);
+  const semester = branch?.semesters.find((s) => s.number === semesterNumber);
   const subject = semester?.subjects.find((s) => s.slug === subjectSlug);
   const note = subject ? getNoteBySlug(subject, noteSlug) : null;
 
@@ -99,8 +101,8 @@ export default async function NoteSEOPage({ params }: NoteSEORouteProps) {
     { label: university?.name || 'University', href: `/university/${universitySlug}` },
     { label: program?.name || 'Program', href: `/university/${universitySlug}/${programSlug}` },
     { label: branch?.name || 'Branch', href: `/university/${universitySlug}/${programSlug}/${branchSlug}` },
-    { label: `Semester ${semester?.number}`, href: `/university/${universitySlug}/${programSlug}/${branchSlug}/semester-${number}` },
-    { label: subject?.name || 'Subject', href: `/university/${universitySlug}/${programSlug}/${branchSlug}/semester-${number}/${subjectSlug}` },
+    { label: `Semester ${semester?.number}`, href: `/university/${universitySlug}/${programSlug}/${branchSlug}/${semesterSlug}` },
+    { label: subject?.name || 'Subject', href: `/university/${universitySlug}/${programSlug}/${branchSlug}/${semesterSlug}/${subjectSlug}` },
     { label: note.title },
   ];
 
@@ -238,7 +240,7 @@ export default async function NoteSEOPage({ params }: NoteSEORouteProps) {
         </Container>
       </main>
       <Footer />
-      
+
       {/* Canonical Link */}
       <link rel="canonical" href={`/note/${note.id}`} />
     </div>
