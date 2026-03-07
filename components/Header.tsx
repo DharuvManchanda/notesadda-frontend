@@ -1,9 +1,14 @@
+'use client';
+
 import Link from 'next/link';
 import { Container } from '@/components/shared/Container';
 import { Button } from '@/components/ui/button';
-import { BookOpen, Upload, LayoutDashboard, User } from 'lucide-react';
+import { BookOpen, Upload, LayoutDashboard, User, LogOut } from 'lucide-react';
+import { useAuth } from '@/components/auth/AuthContext';
 
 export function Header() {
+  const { isSignedIn, user, logout } = useAuth();
+
   return (
     <header className="sticky top-0 z-50 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <Container>
@@ -31,9 +36,27 @@ export function Header() {
               <LayoutDashboard className="h-4 w-4" />
               <span className="hidden sm:inline">Admin</span>
             </Link>
-            <Button variant="default" size="sm">
-              Sign In
-            </Button>
+            
+            {isSignedIn && user ? (
+              <div className="flex items-center gap-3">
+                <span className="text-sm text-muted-foreground hidden sm:inline">{user.username}</span>
+                <Button 
+                  variant="ghost" 
+                  size="sm"
+                  onClick={logout}
+                  className="flex items-center gap-1"
+                >
+                  <LogOut className="h-4 w-4" />
+                  <span className="hidden sm:inline">Logout</span>
+                </Button>
+              </div>
+            ) : (
+              <Link href="/auth/signin">
+                <Button variant="default" size="sm">
+                  Sign In
+                </Button>
+              </Link>
+            )}
           </nav>
         </div>
       </Container>
