@@ -35,7 +35,7 @@ export async function generateMetadata({ params }: SemesterPageProps) {
   }
 
   return {
-    title: `Semester ${resolved.semester.number} - ${resolved.branch.name} - StudyHub`,
+    title: `Semester ${resolved.semester.number} - ${resolved.branch.name} - NotesPitara`,
     description: `Browse subjects and notes for Semester ${resolved.semester.number} of ${resolved.branch.name} at ${resolved.university.name}.`,
   };
 }

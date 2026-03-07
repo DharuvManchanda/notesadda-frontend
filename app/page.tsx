@@ -1,18 +1,19 @@
-import { Header } from '@/components/Header';
-import { Footer } from '@/components/Footer';
-import { Container } from '@/components/shared/Container';
-import { Section } from '@/components/shared/Section';
-import { SearchBar } from '@/components/shared/SearchBar';
-import { UniversityCard } from '@/components/cards/UniversityCard';
-import { NoteCard } from '@/components/cards/NoteCard';
-import { Button } from '@/components/ui/button';
-import { universities } from '@/lib/mockData';
-import Link from 'next/link';
-import { BookOpen, Search, Share2, TrendingUp } from 'lucide-react';
+import { Header } from "@/components/Header";
+import { Footer } from "@/components/Footer";
+import { Container } from "@/components/shared/Container";
+import { Section } from "@/components/shared/Section";
+import { SearchBar } from "@/components/shared/SearchBar";
+import { UniversityCard } from "@/components/cards/UniversityCard";
+import { NoteCard } from "@/components/cards/NoteCard";
+import { Button } from "@/components/ui/button";
+import { universities } from "@/lib/mockData";
+import Link from "next/link";
+import { BookOpen, Search, Share2, TrendingUp } from "lucide-react";
 
 export const metadata = {
-  title: 'StudyHub - Share and Discover College Notes',
-  description: 'A modern platform for college students to share, discover, and learn from notes across universities and programs.',
+  title: "NotesPitara - Share and Discover College Notes",
+  description:
+    "A modern platform for college students to share, discover, and learn from notes across universities and programs.",
 };
 
 export default function HomePage() {
@@ -24,9 +25,11 @@ export default function HomePage() {
     .flatMap((uni) =>
       uni.programs.flatMap((prog) =>
         prog.branches.flatMap((branch) =>
-          branch.semesters.flatMap((sem) => sem.subjects.flatMap((subj) => subj.notes))
-        )
-      )
+          branch.semesters.flatMap((sem) =>
+            sem.subjects.flatMap((subj) => subj.notes),
+          ),
+        ),
+      ),
     )
     .sort((a, b) => b.downloads - a.downloads)
     .slice(0, 3);
@@ -36,59 +39,80 @@ export default function HomePage() {
       <Header />
       <main>
         {/* Hero Section */}
-        <Section className="pt-16 md:pt-24 lg:pt-32 pb-12 md:pb-16">
-          <Container>
-            <div className="max-w-3xl mx-auto text-center">
-              <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-balance mb-6">
-                Share and Discover <span className="text-primary">College Notes</span>
-              </h1>
-              <p className="text-lg md:text-xl text-muted-foreground text-balance mb-8 max-w-2xl mx-auto">
-                Join thousands of students collaborating and sharing academic notes across universities and programs. Find the perfect study materials for your courses.
-              </p>
+        <div className="relative">
+          <div className="absolute inset-0 bg-grid opacity-[0.1] pointer-events-none" />
+          <Section className="pt-16 md:pt-24 pb-12 md:pb-16">
+            <Container className="relative z-10">
+              <div className="max-w-3xl mx-auto text-center">
+                <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-balance mb-6">
+                  Share and Discover{" "}
+                  <span className="text-primary">College Notes</span>
+                </h1>
+                <p className="text-lg md:text-xl text-muted-foreground text-balance mb-8 max-w-2xl mx-auto">
+                  Join thousands of students collaborating and sharing academic
+                  notes across universities and programs. Find the perfect study
+                  materials for your courses.
+                </p>
 
-              <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
-                <Link href="/explore">
-                  <Button size="lg" className="w-full sm:w-auto">
-                    Explore Notes
+                <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
+                  <Link href="/explore">
+                    <Button size="lg" className="w-full sm:w-auto">
+                      Explore Notes
+                    </Button>
+                  </Link>
+                  <Button
+                    variant="outline"
+                    size="lg"
+                    className="w-full sm:w-auto"
+                  >
+                    Upload Notes
                   </Button>
-                </Link>
-                <Button variant="outline" size="lg" className="w-full sm:w-auto">
-                  Upload Notes
-                </Button>
-              </div>
+                </div>
 
-              <div className="flex justify-center mb-12">
-                <SearchBar className="max-w-full" />
-              </div>
+                <div className="flex justify-center mb-12">
+                  <SearchBar className="max-w-full bg-background" />
+                </div>
 
-              <div className="grid grid-cols-3 gap-4 md:gap-8 text-center text-sm">
-                <div>
-                  <p className="text-2xl md:text-3xl font-bold text-primary">{universities.length}</p>
-                  <p className="text-muted-foreground">Universities</p>
-                </div>
-                <div>
-                  <p className="text-2xl md:text-3xl font-bold text-secondary">
-                    {universities.reduce((sum, uni) => sum + uni.totalPrograms, 0)}
-                  </p>
-                  <p className="text-muted-foreground">Programs</p>
-                </div>
-                <div>
-                  <p className="text-2xl md:text-3xl font-bold text-accent">
-                    {universities.reduce((sum, uni) => sum + uni.totalNotes, 0).toLocaleString()}
-                  </p>
-                  <p className="text-muted-foreground">Notes</p>
+                <div className="flex justify-around gap-4 md:gap-8 text-center text-sm">
+                  <div>
+                    <p className="text-2xl md:text-3xl font-bold text-primary">
+                      {universities.length}
+                    </p>
+                    <p className="text-muted-foreground">Universities</p>
+                  </div>
+                  <div>
+                    <p className="text-2xl md:text-3xl font-bold text-secondary">
+                      {universities.reduce(
+                        (sum, uni) => sum + uni.totalPrograms,
+                        0,
+                      )}
+                    </p>
+                    <p className="text-muted-foreground">Programs</p>
+                  </div>
+                  <div>
+                    <p className="text-2xl md:text-3xl font-bold text-accent">
+                      {universities
+                        .reduce((sum, uni) => sum + uni.totalNotes, 0)
+                        .toLocaleString()}
+                    </p>
+                    <p className="text-muted-foreground">Notes</p>
+                  </div>
                 </div>
               </div>
-            </div>
-          </Container>
-        </Section>
+            </Container>
+          </Section>
+        </div>
 
         {/* Featured Universities */}
         <Section className="py-12 md:py-16 bg-muted/40">
           <Container>
             <div className="mb-12">
-              <h2 className="text-3xl md:text-4xl font-bold mb-3">Featured Universities</h2>
-              <p className="text-muted-foreground">Explore top institutions and their academic programs</p>
+              <h2 className="text-3xl md:text-4xl font-bold mb-3">
+                Featured Universities
+              </h2>
+              <p className="text-muted-foreground">
+                Explore top institutions and their academic programs
+              </p>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
@@ -111,9 +135,13 @@ export default function HomePage() {
             <div className="mb-12">
               <div className="flex items-center gap-2 mb-3">
                 <TrendingUp className="h-6 w-6 text-accent" />
-                <h2 className="text-3xl md:text-4xl font-bold">Trending Notes</h2>
+                <h2 className="text-3xl md:text-4xl font-bold">
+                  Trending Notes
+                </h2>
               </div>
-              <p className="text-muted-foreground">Most downloaded and highly rated study materials</p>
+              <p className="text-muted-foreground">
+                Most downloaded and highly rated study materials
+              </p>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
@@ -128,7 +156,9 @@ export default function HomePage() {
         <Section className="py-12 md:py-16 bg-muted/40">
           <Container>
             <div className="max-w-3xl mx-auto">
-              <h2 className="text-3xl md:text-4xl font-bold mb-12 text-center">How StudyHub Works</h2>
+              <h2 className="text-3xl md:text-4xl font-bold mb-12 text-center">
+                How NotesPitara Works
+              </h2>
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                 {/* Step 1 */}
@@ -138,7 +168,8 @@ export default function HomePage() {
                   </div>
                   <h3 className="text-lg font-bold mb-2">Search & Explore</h3>
                   <p className="text-muted-foreground">
-                    Browse through notes organized by university, program, semester, and subject.
+                    Browse through notes organized by university, program,
+                    semester, and subject.
                   </p>
                 </div>
 
@@ -149,7 +180,8 @@ export default function HomePage() {
                   </div>
                   <h3 className="text-lg font-bold mb-2">Study & Download</h3>
                   <p className="text-muted-foreground">
-                    Download high-quality notes and study materials from verified contributors.
+                    Download high-quality notes and study materials from
+                    verified contributors.
                   </p>
                 </div>
 
@@ -160,7 +192,8 @@ export default function HomePage() {
                   </div>
                   <h3 className="text-lg font-bold mb-2">Share & Contribute</h3>
                   <p className="text-muted-foreground">
-                    Upload your notes and help other students succeed in their studies.
+                    Upload your notes and help other students succeed in their
+                    studies.
                   </p>
                 </div>
               </div>
@@ -172,9 +205,12 @@ export default function HomePage() {
         <Section className="py-12 md:py-16">
           <Container>
             <div className="rounded-2xl bg-gradient-to-r from-primary/10 to-secondary/10 border border-primary/20 p-8 md:p-12 text-center">
-              <h2 className="text-3xl md:text-4xl font-bold mb-4">Ready to Start Learning?</h2>
+              <h2 className="text-3xl md:text-4xl font-bold mb-4">
+                Ready to Start Learning?
+              </h2>
               <p className="text-lg text-muted-foreground mb-8 max-w-2xl mx-auto">
-                Join our community of students sharing and discovering the best study materials for their courses.
+                Join our community of students sharing and discovering the best
+                study materials for their courses.
               </p>
               <Link href="/explore">
                 <Button size="lg">Explore All Notes</Button>

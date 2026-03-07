@@ -30,7 +30,7 @@ export async function generateMetadata({ params }: SubjectPageProps) {
   const { university, subject } = resolveRoute({ universitySlug, programSlug, branchSlug, semesterSlug, subjectSlug });
 
   return {
-    title: `${subject!.name} - ${subject!.code} - StudyHub`,
+    title: `${subject!.name} - ${subject!.code} - NotesPitara`,
     description: `Browse ${subject!.totalNotes} study notes for ${subject!.name} (${subject!.code}) from ${university.name}.`,
   };
 }

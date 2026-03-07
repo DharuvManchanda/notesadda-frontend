@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Building2, Layers, BookOpen, FileText, Users, Clock, Check, X } from 'lucide-react';
 
 export const metadata = {
-  title: 'Admin Dashboard - StudyHub',
+  title: 'Admin Dashboard - NotesPitara',
   description: 'Admin dashboard for managing universities, programs, subjects, and notes',
 };
 

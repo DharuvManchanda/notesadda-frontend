@@ -32,7 +32,7 @@ export async function generateMetadata({ params }: UniversityPageProps) {
   }
 
   return {
-    title: `${university.name} - StudyHub`,
+    title: `${university.name} - NotesPitara`,
     description: `${university.description} Browse programs and notes from ${university.name}.`,
   };
 }

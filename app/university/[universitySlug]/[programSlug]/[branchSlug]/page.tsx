@@ -40,7 +40,7 @@ export async function generateMetadata({ params }: BranchPageProps) {
   const { university, branch } = resolveRoute({ universitySlug, programSlug, branchSlug });
 
   return {
-    title: `${branch.name} - ${university.name} - StudyHub`,
+    title: `${branch.name} - ${university.name} - NotesPitara`,
     description: `${branch.description} Browse semesters and subjects for ${branch.name} at ${university.name}.`,
   };
 }

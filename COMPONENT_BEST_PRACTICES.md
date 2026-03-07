@@ -1,7 +1,7 @@
 # Component Refactoring & Best Practices Guide
 
 ## Overview
-This document outlines the component architecture and best practices used throughout StudyHub to ensure reusability, maintainability, and clean code.
+This document outlines the component architecture and best practices used throughout NotesPitara to ensure reusability, maintainability, and clean code.
 
 ## Upload Page Refactoring Example
 

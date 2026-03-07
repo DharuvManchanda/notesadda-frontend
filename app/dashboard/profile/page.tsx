@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { User, Download, Bookmark, Upload, Calendar } from 'lucide-react';
 
 export const metadata = {
-  title: 'My Profile - StudyHub',
+  title: 'My Profile - NotesPitara',
   description: 'View your profile and uploaded notes',
 };
 

@@ -36,7 +36,7 @@ export function AdminLayout({ children, adminName = 'Admin' }: AdminLayoutProps)
             <div className="h-10 w-10 rounded-lg bg-primary flex items-center justify-center flex-shrink-0">
               <LayoutDashboard className="h-6 w-6 text-primary-foreground" />
             </div>
-            {sidebarOpen && <span className="font-bold text-lg">StudyHub</span>}
+            {sidebarOpen && <span className="font-bold text-lg">NotesPitara</span>}
           </Link>
         </div>
 

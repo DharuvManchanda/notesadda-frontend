@@ -1,8 +1,8 @@
-# Hybrid Routing Model for Notes - StudyHub
+# Hybrid Routing Model for Notes - NotesPitara
 
 ## Overview
 
-StudyHub implements a professional hybrid routing model for notes that provides both stability and SEO strength through dual URLs pointing to the same content.
+NotesPitara implements a professional hybrid routing model for notes that provides both stability and SEO strength through dual URLs pointing to the same content.
 
 ## Route Structure
 

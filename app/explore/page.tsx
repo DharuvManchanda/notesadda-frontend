@@ -6,8 +6,8 @@ import { PageHeader } from '@/components/shared/PageHeader';
 import { UniversitiesList } from '@/components/shared/UniversitiesList';
 
 export const metadata = {
-  title: 'Explore Universities - StudyHub',
-  description: 'Browse all universities and their academic programs available on StudyHub.',
+  title: 'Explore Universities - NotesPitara',
+  description: 'Browse all universities and their academic programs available on NotesPitara.',
 };
 
 export default function ExplorePage() {

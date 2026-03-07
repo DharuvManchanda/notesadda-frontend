@@ -1,8 +1,8 @@
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Dashboard - StudyHub',
-  description: 'Your StudyHub dashboard',
+  title: 'Dashboard - NotesPitara',
+  description: 'Your NotesPitara dashboard',
 };
 
 export default function DashboardLayout({

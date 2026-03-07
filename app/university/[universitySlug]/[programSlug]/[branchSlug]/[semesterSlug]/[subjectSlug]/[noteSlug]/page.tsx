@@ -43,7 +43,7 @@ export async function generateMetadata({ params }: NoteSEORouteProps) {
   }
 
   return {
-    title: `${note.title} - ${subject?.name} - StudyHub`,
+    title: `${note.title} - ${subject?.name} - NotesPitara`,
     description: `Downloaded by ${note.downloads} students. Uploaded by ${note.uploadedBy.name}. Rating: ${note.rating}/5`,
     alternates: {
       canonical: `/note/${note.id}`,

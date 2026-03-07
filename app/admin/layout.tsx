@@ -1,8 +1,8 @@
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Admin Dashboard - StudyHub',
-  description: 'Admin dashboard for managing StudyHub platform',
+  title: 'Admin Dashboard - NotesPitara',
+  description: 'Admin dashboard for managing NotesPitara platform',
 };
 
 export default function AdminLayout({

@@ -1,4 +1,4 @@
-# Code Refactoring Summary - StudyHub Platform
+# Code Refactoring Summary - NotesPitara Platform
 
 ## Problems Identified and Fixed
 

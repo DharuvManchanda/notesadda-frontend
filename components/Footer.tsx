@@ -7,13 +7,13 @@ export function Footer() {
   return (
     <footer className="border-t bg-muted/40">
       <Container className="py-12">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
+        {/* <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
           <div>
             <div className="flex items-center gap-2 font-bold text-lg mb-4">
               <div className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center">
                 <BookOpen className="h-5 w-5 text-primary-foreground" />
               </div>
-              <span>StudyHub</span>
+              <span>NotesPitara</span>
             </div>
             <p className="text-sm text-muted-foreground">
               A community-driven platform for sharing and discovering college notes.
@@ -82,14 +82,19 @@ export function Footer() {
               </li>
             </ul>
           </div>
-        </div>
+        </div> */}
 
-        <Separator className="my-8" />
+        {/* <Separator className="my-8" /> */}
 
-        <div className="flex flex-col md:flex-row justify-between items-center text-sm text-muted-foreground">
-          <p>&copy; 2026 StudyHub. All rights reserved.</p>
+        <div className="flex flex-col md:flex-row justify-between items-center text-sm">
+          <Link href="/" className="flex items-center gap-2 font-bold text-lg">
+            <div className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center">
+              <BookOpen className="h-5 w-5 text-primary-foreground" />
+            </div>
+            <span className="hidden sm:inline">Notes Pitara</span>
+          </Link>
           <div className="flex gap-6 mt-4 md:mt-0">
-            <Link href="/" className="hover:text-foreground transition-colors">
+            {/* <Link href="/" className="hover:text-foreground transition-colors">
               Twitter
             </Link>
             <Link href="/" className="hover:text-foreground transition-colors">
@@ -97,8 +102,8 @@ export function Footer() {
             </Link>
             <Link href="/" className="hover:text-foreground transition-colors">
               LinkedIn
-            </Link>
-          </div>
+            </Link> */}
+          <p>&copy; {new Date().getFullYear()} All rights reserved.</p>          </div>
         </div>
       </Container>
     </footer>

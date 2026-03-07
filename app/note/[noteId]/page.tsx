@@ -32,7 +32,7 @@ export async function generateMetadata({ params }: NotePageProps) {
   }
 
   return {
-    title: `${note.title} - StudyHub`,
+    title: `${note.title} - NotesPitara`,
     description: `Downloaded by ${note.downloads} students. Uploaded by ${note.uploadedBy.name}. Rating: ${note.rating}/5`,
   };
 }
