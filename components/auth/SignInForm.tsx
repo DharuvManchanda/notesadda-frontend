@@ -2,49 +2,58 @@
 
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
 import { useRouter } from 'next/navigation';
+import { useDispatch } from 'react-redux';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { signinSchema, type SigninFormData } from '@/lib/auth-schemas';
-import { callApi, API_ENDPOINTS } from '@/lib/api-config';
+import { notespitaraApi } from '@/store/services/notespitara';
+import type { LoginRequest } from '@/store/services/notespitara';
+import { setCredentials } from '@/store/authSlice';
 import { toast } from 'sonner';
 import Link from 'next/link';
 import { Eye, EyeOff } from 'lucide-react';
-import { useAuth } from '@/components/auth/AuthContext';
 
 export function SignInForm() {
   const router = useRouter();
-  const { setUser } = useAuth();
+  const dispatch = useDispatch();
   const [showPassword, setShowPassword] = useState(false);
+  const [authenticateUser, { isLoading }] =
+    notespitaraApi.useAuthenticateUserMutation();
+
   const {
     register,
     handleSubmit,
-    formState: { errors, isSubmitting },
-  } = useForm<SigninFormData>({
-    resolver: zodResolver(signinSchema),
-  });
+    formState: { errors },
+  } = useForm<LoginRequest>();
 
-  const onSubmit = async (data: SigninFormData) => {
+  const onSubmit = async (data: LoginRequest) => {
     try {
-      const response = await callApi(API_ENDPOINTS.signin, data);
+      const result = await authenticateUser({
+        loginRequest: data,
+      }).unwrap();
 
-      if (response.success) {
-        toast.success('Signed in successfully!');
-        // Store user data if provided
-        if (response.data?.user) {
-          setUser(response.data.user);
+      // Backend sets HttpOnly cookie automatically via Set-Cookie header.
+      // Store user info in Redux if the response includes it.
+      if (result && typeof result === 'object') {
+        const res = result as Record<string, any>;
+        if (res.username || res.email) {
+          dispatch(
+            setCredentials({
+              id: res.id ?? '',
+              email: res.email ?? '',
+              username: res.username ?? data.username,
+              roles: res.roles,
+            }),
+          );
         }
-        // Store token if provided
-        if (response.data?.token) {
-          localStorage.setItem('auth_token', response.data.token);
-        }
-        router.push('/');
-      } else {
-        toast.error(response.error || 'Sign in failed');
       }
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'An error occurred');
+
+      toast.success('Signed in successfully!');
+      router.push('/');
+    } catch (error: any) {
+      const message =
+        error?.data?.message || error?.message || 'Sign in failed';
+      toast.error(message);
     }
   };
 
@@ -57,20 +66,20 @@ export function SignInForm() {
         </p>
       </div>
 
-      {/* Email */}
+      {/* Username */}
       <div className="space-y-2">
-        <label htmlFor="email" className="block text-sm font-medium text-foreground">
-          Email
+        <label htmlFor="username" className="block text-sm font-medium text-foreground">
+          Username
         </label>
         <Input
-          id="email"
-          type="email"
-          placeholder="john@example.com"
-          {...register('email')}
-          className={errors.email ? 'border-destructive' : ''}
+          id="username"
+          type="text"
+          placeholder="john_doe"
+          {...register('username', { required: 'Username is required' })}
+          className={errors.username ? 'border-destructive' : ''}
         />
-        {errors.email && (
-          <p className="text-xs text-destructive">{errors.email.message}</p>
+        {errors.username && (
+          <p className="text-xs text-destructive">{errors.username.message}</p>
         )}
       </div>
 
@@ -92,7 +101,7 @@ export function SignInForm() {
             id="password"
             type={showPassword ? 'text' : 'password'}
             placeholder="••••••••"
-            {...register('password')}
+            {...register('password', { required: 'Password is required' })}
             className={errors.password ? 'border-destructive pr-10' : 'pr-10'}
           />
           <button
@@ -109,12 +118,8 @@ export function SignInForm() {
       </div>
 
       {/* Submit Button */}
-      <Button
-        type="submit"
-        disabled={isSubmitting}
-        className="w-full"
-      >
-        {isSubmitting ? 'Signing in...' : 'Sign In'}
+      <Button type="submit" disabled={isLoading} className="w-full">
+        {isLoading ? 'Signing in...' : 'Sign In'}
       </Button>
 
       {/* Sign Up Link */}

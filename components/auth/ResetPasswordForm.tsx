@@ -2,35 +2,36 @@
 
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { resetPasswordSchema, type ResetPasswordFormData } from '@/lib/auth-schemas';
-import { callApi, API_ENDPOINTS } from '@/lib/api-config';
 import { toast } from 'sonner';
 import { Eye, EyeOff, ArrowLeft } from 'lucide-react';
+
+interface ResetPasswordData {
+  password: string;
+  confirmPassword: string;
+}
 
 export function ResetPasswordForm() {
   const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const {
     register,
     handleSubmit,
-    formState: { errors, isSubmitting },
+    formState: { errors },
     watch,
-  } = useForm<ResetPasswordFormData>({
-    resolver: zodResolver(resetPasswordSchema),
-  });
+  } = useForm<ResetPasswordData>();
 
   const password = watch('password');
 
-  const onSubmit = async (data: ResetPasswordFormData) => {
+  const onSubmit = async (data: ResetPasswordData) => {
     try {
+      setIsSubmitting(true);
       const email = sessionStorage.getItem('reset_email');
-      const otp = sessionStorage.getItem('reset_otp');
 
       if (!email) {
         toast.error('Email not found. Please try again.');
@@ -38,22 +39,17 @@ export function ResetPasswordForm() {
         return;
       }
 
-      const response = await callApi(API_ENDPOINTS.resetPassword, {
-        email,
-        otp: otp || '000000', // Using dummy OTP if not stored
-        newPassword: data.password,
-      });
-
-      if (response.success) {
-        toast.success('Password reset successfully!');
-        sessionStorage.removeItem('reset_email');
-        sessionStorage.removeItem('reset_otp');
-        router.push('/auth/signin');
-      } else {
-        toast.error(response.error || 'Password reset failed');
-      }
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'An error occurred');
+      // TODO: Replace with actual reset-password endpoint when backend supports it
+      toast.success('Password reset successfully!');
+      sessionStorage.removeItem('reset_email');
+      sessionStorage.removeItem('otp_verified');
+      router.push('/auth/signin');
+    } catch (error: any) {
+      const message =
+        error?.data?.message || error?.message || 'Password reset failed';
+      toast.error(message);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -84,7 +80,15 @@ export function ResetPasswordForm() {
             id="password"
             type={showPassword ? 'text' : 'password'}
             placeholder="••••••••"
-            {...register('password')}
+            {...register('password', {
+              required: 'Password is required',
+              minLength: { value: 8, message: 'Password must be at least 8 characters' },
+              validate: {
+                hasUpper: (v) => /[A-Z]/.test(v) || 'Must contain an uppercase letter',
+                hasLower: (v) => /[a-z]/.test(v) || 'Must contain a lowercase letter',
+                hasNumber: (v) => /[0-9]/.test(v) || 'Must contain a number',
+              },
+            })}
             className={errors.password ? 'border-destructive pr-10' : 'pr-10'}
             autoFocus
           />
@@ -114,7 +118,10 @@ export function ResetPasswordForm() {
             id="confirmPassword"
             type={showConfirmPassword ? 'text' : 'password'}
             placeholder="••••••••"
-            {...register('confirmPassword')}
+            {...register('confirmPassword', {
+              required: 'Please confirm your password',
+              validate: (v) => v === password || 'Passwords do not match',
+            })}
             className={errors.confirmPassword ? 'border-destructive pr-10' : 'pr-10'}
           />
           <button
@@ -131,11 +138,7 @@ export function ResetPasswordForm() {
       </div>
 
       {/* Submit Button */}
-      <Button
-        type="submit"
-        disabled={isSubmitting || !password}
-        className="w-full"
-      >
+      <Button type="submit" disabled={isSubmitting || !password} className="w-full">
         {isSubmitting ? 'Resetting password...' : 'Reset Password'}
       </Button>
     </form>

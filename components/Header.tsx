@@ -5,9 +5,20 @@ import { Container } from '@/components/shared/Container';
 import { Button } from '@/components/ui/button';
 import { BookOpen, Upload, LayoutDashboard, User, LogOut } from 'lucide-react';
 import { useAuth } from '@/components/auth/AuthContext';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 
 export function Header() {
-  const { isSignedIn, user, logout } = useAuth();
+  const { isAuthenticated, user, logout } = useAuth();
 
   return (
     <header className="sticky top-0 z-50 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -36,19 +47,35 @@ export function Header() {
               <LayoutDashboard className="h-4 w-4" />
               <span className="hidden sm:inline">Admin</span>
             </Link>
-            
-            {isSignedIn && user ? (
+
+            {isAuthenticated && user ? (
               <div className="flex items-center gap-3">
                 <span className="text-sm text-muted-foreground hidden sm:inline">{user.username}</span>
-                <Button 
-                  variant="ghost" 
-                  size="sm"
-                  onClick={logout}
-                  className="flex items-center gap-1"
-                >
-                  <LogOut className="h-4 w-4" />
-                  <span className="hidden sm:inline">Logout</span>
-                </Button>
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="flex items-center gap-1"
+                    >
+                      <LogOut className="h-4 w-4" />
+                      <span className="hidden sm:inline">Logout</span>
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        This will log you out of your account. You will need to sign back in
+                        to access your profile and upload or manage notes.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                      <AlertDialogAction onClick={logout}>Log out</AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
               </div>
             ) : (
               <Link href="/auth/signin">

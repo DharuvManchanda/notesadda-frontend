@@ -2,12 +2,11 @@
 
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { signupSchema, type SignupFormData } from '@/lib/auth-schemas';
-import { callApi, API_ENDPOINTS } from '@/lib/api-config';
+import { notespitaraApi } from '@/store/services/notespitara';
+import type { SignupRequest } from '@/store/services/notespitara';
 import { toast } from 'sonner';
 import Link from 'next/link';
 import { Eye, EyeOff } from 'lucide-react';
@@ -15,28 +14,26 @@ import { Eye, EyeOff } from 'lucide-react';
 export function SignUpForm() {
   const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
+  const [registerUser, { isLoading }] =
+    notespitaraApi.useRegisterUserMutation();
+
   const {
     register,
     handleSubmit,
-    formState: { errors, isSubmitting },
-  } = useForm<SignupFormData>({
-    resolver: zodResolver(signupSchema),
-  });
+    formState: { errors },
+  } = useForm<SignupRequest>();
 
-  const onSubmit = async (data: SignupFormData) => {
+  const onSubmit = async (data: SignupRequest) => {
     try {
-      const response = await callApi(API_ENDPOINTS.signup, data);
+      await registerUser({ signupRequest: data }).unwrap();
 
-      if (response.success) {
-        toast.success('Signup successful! Check your email for OTP.');
-        // Store email for OTP verification page
-        sessionStorage.setItem('signup_email', data.email);
-        router.push('/auth/signup/otp');
-      } else {
-        toast.error(response.error || 'Signup failed');
-      }
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'An error occurred');
+      toast.success('Signup successful! Check your email for OTP.');
+      sessionStorage.setItem('signup_email', data.email);
+      router.push('/auth/signup/otp');
+    } catch (error: any) {
+      const message =
+        error?.data?.message || error?.message || 'Signup failed';
+      toast.error(message);
     }
   };
 
@@ -57,7 +54,12 @@ export function SignUpForm() {
         <Input
           id="username"
           placeholder="john_doe"
-          {...register('username')}
+          {...register('username', {
+            required: 'Username is required',
+            minLength: { value: 3, message: 'Username must be at least 3 characters' },
+            maxLength: { value: 20, message: 'Username must be at most 20 characters' },
+            pattern: { value: /^[a-zA-Z0-9_]+$/, message: 'Letters, numbers, and underscores only' },
+          })}
           className={errors.username ? 'border-destructive' : ''}
         />
         {errors.username && (
@@ -74,7 +76,10 @@ export function SignUpForm() {
           id="email"
           type="email"
           placeholder="john@example.com"
-          {...register('email')}
+          {...register('email', {
+            required: 'Email is required',
+            pattern: { value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/, message: 'Invalid email address' },
+          })}
           className={errors.email ? 'border-destructive' : ''}
         />
         {errors.email && (
@@ -92,7 +97,15 @@ export function SignUpForm() {
             id="password"
             type={showPassword ? 'text' : 'password'}
             placeholder="••••••••"
-            {...register('password')}
+            {...register('password', {
+              required: 'Password is required',
+              minLength: { value: 8, message: 'Password must be at least 8 characters' },
+              validate: {
+                hasUpper: (v) => /[A-Z]/.test(v) || 'Must contain an uppercase letter',
+                hasLower: (v) => /[a-z]/.test(v) || 'Must contain a lowercase letter',
+                hasNumber: (v) => /[0-9]/.test(v) || 'Must contain a number',
+              },
+            })}
             className={errors.password ? 'border-destructive pr-10' : 'pr-10'}
           />
           <button
@@ -112,12 +125,8 @@ export function SignUpForm() {
       </div>
 
       {/* Submit Button */}
-      <Button
-        type="submit"
-        disabled={isSubmitting}
-        className="w-full"
-      >
-        {isSubmitting ? 'Creating account...' : 'Create Account'}
+      <Button type="submit" disabled={isLoading} className="w-full">
+        {isLoading ? 'Creating account...' : 'Create Account'}
       </Button>
 
       {/* Sign In Link */}

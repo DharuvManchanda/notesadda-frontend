@@ -2,40 +2,38 @@
 
 import React from 'react';
 import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { forgotPasswordSchema, type ForgotPasswordFormData } from '@/lib/auth-schemas';
-import { callApi, API_ENDPOINTS } from '@/lib/api-config';
+import { notespitaraApi } from '@/store/services/notespitara';
+import type { ResendEmailOtpRequest } from '@/store/services/notespitara';
 import { toast } from 'sonner';
 import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
 
 export function ForgotPasswordForm() {
   const router = useRouter();
+  // Re-using resendEmailOtp since both send an OTP to the email
+  const [resendEmailOtp, { isLoading }] =
+    notespitaraApi.useResendEmailOtpMutation();
+
   const {
     register,
     handleSubmit,
-    formState: { errors, isSubmitting },
-  } = useForm<ForgotPasswordFormData>({
-    resolver: zodResolver(forgotPasswordSchema),
-  });
+    formState: { errors },
+  } = useForm<ResendEmailOtpRequest>();
 
-  const onSubmit = async (data: ForgotPasswordFormData) => {
+  const onSubmit = async (data: ResendEmailOtpRequest) => {
     try {
-      const response = await callApi(API_ENDPOINTS.forgotPassword, data);
+      await resendEmailOtp({ resendEmailOtpRequest: data }).unwrap();
 
-      if (response.success) {
-        toast.success('OTP sent to your email!');
-        // Store email for OTP verification page
-        sessionStorage.setItem('reset_email', data.email);
-        router.push('/auth/forgot-password/otp');
-      } else {
-        toast.error(response.error || 'Failed to send OTP');
-      }
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'An error occurred');
+      toast.success('OTP sent to your email!');
+      sessionStorage.setItem('reset_email', data.email);
+      router.push('/auth/forgot-password/otp');
+    } catch (error: any) {
+      const message =
+        error?.data?.message || error?.message || 'Failed to send OTP';
+      toast.error(message);
     }
   };
 
@@ -65,7 +63,10 @@ export function ForgotPasswordForm() {
           id="email"
           type="email"
           placeholder="john@example.com"
-          {...register('email')}
+          {...register('email', {
+            required: 'Email is required',
+            pattern: { value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/, message: 'Invalid email address' },
+          })}
           className={errors.email ? 'border-destructive' : ''}
           autoFocus
         />
@@ -75,12 +76,8 @@ export function ForgotPasswordForm() {
       </div>
 
       {/* Submit Button */}
-      <Button
-        type="submit"
-        disabled={isSubmitting}
-        className="w-full"
-      >
-        {isSubmitting ? 'Sending code...' : 'Send Reset Code'}
+      <Button type="submit" disabled={isLoading} className="w-full">
+        {isLoading ? 'Sending code...' : 'Send Reset Code'}
       </Button>
 
       {/* Sign In Link */}

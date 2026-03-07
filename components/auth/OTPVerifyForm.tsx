@@ -2,40 +2,52 @@
 
 import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { otpSchema, type OtpFormData } from '@/lib/auth-schemas';
-import { callApi, API_ENDPOINTS } from '@/lib/api-config';
+import { notespitaraApi } from '@/store/services/notespitara';
+import type { VerifyEmailOtpRequest, ResendEmailOtpRequest } from '@/store/services/notespitara';
 import { toast } from 'sonner';
 import { ArrowLeft } from 'lucide-react';
 
 export function OTPVerifyForm({ purpose = 'signup' }: { purpose?: 'signup' | 'reset' }) {
   const router = useRouter();
-  const [timeLeft, setTimeLeft] = useState(600); // 10 minutes
+  const [timeLeft, setTimeLeft] = useState(600);
   const [canResend, setCanResend] = useState(false);
   const [resendCooldown, setResendCooldown] = useState(30);
 
+  const [verifyEmailOtp, { isLoading: isVerifying }] =
+    notespitaraApi.useVerifyEmailOtpMutation();
+  const [resendEmailOtp, { isLoading: isResending }] =
+    notespitaraApi.useResendEmailOtpMutation();
+
   const {
-    register,
     handleSubmit,
-    formState: { errors, isSubmitting },
+    formState: { errors },
     setValue,
     watch,
-  } = useForm<OtpFormData>({
-    resolver: zodResolver(otpSchema),
+  } = useForm<VerifyEmailOtpRequest>({
+    defaultValues: { email: '', otp: '' },
   });
 
   const otpValue = watch('otp');
 
+  // Load email from sessionStorage on mount
+  useEffect(() => {
+    const email = sessionStorage.getItem(
+      purpose === 'signup' ? 'signup_email' : 'reset_email',
+    );
+    if (email) {
+      setValue('email', email);
+    } else {
+      toast.error('Email not found. Please try again.');
+      router.push(purpose === 'signup' ? '/auth/signup' : '/auth/forgot-password');
+    }
+  }, [purpose, router, setValue]);
+
   // OTP expiry timer
   useEffect(() => {
     if (timeLeft <= 0) return;
-
-    const timer = setInterval(() => {
-      setTimeLeft((prev) => prev - 1);
-    }, 1000);
-
+    const timer = setInterval(() => setTimeLeft((prev) => prev - 1), 1000);
     return () => clearInterval(timer);
   }, [timeLeft]);
 
@@ -45,11 +57,7 @@ export function OTPVerifyForm({ purpose = 'signup' }: { purpose?: 'signup' | 're
       setCanResend(true);
       return;
     }
-
-    const timer = setInterval(() => {
-      setResendCooldown((prev) => prev - 1);
-    }, 1000);
-
+    const timer = setInterval(() => setResendCooldown((prev) => prev - 1), 1000);
     return () => clearInterval(timer);
   }, [resendCooldown]);
 
@@ -59,66 +67,45 @@ export function OTPVerifyForm({ purpose = 'signup' }: { purpose?: 'signup' | 're
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
-  const onSubmit = async (data: OtpFormData) => {
+  const onSubmit = async (data: VerifyEmailOtpRequest) => {
     try {
-      const email = sessionStorage.getItem(
-        purpose === 'signup' ? 'signup_email' : 'reset_email',
-      );
+      await verifyEmailOtp({ verifyEmailOtpRequest: data }).unwrap();
 
-      if (!email) {
-        toast.error('Email not found. Please try again.');
-        router.push(purpose === 'signup' ? '/auth/signup' : '/auth/forgot-password');
-        return;
-      }
-
-      const response = await callApi(API_ENDPOINTS.verifyOtp, {
-        email,
-        otp: data.otp,
-      });
-
-      if (response.success) {
-        toast.success('OTP verified successfully!');
-        sessionStorage.setItem('otp_verified', 'true');
-        if (purpose === 'signup') {
-          router.push('/');
-        } else {
-          router.push('/auth/forgot-password/reset');
-        }
+      toast.success('OTP verified successfully!');
+      sessionStorage.setItem('otp_verified', 'true');
+      if (purpose === 'signup') {
+        router.push('/');
       } else {
-        toast.error(response.error || 'OTP verification failed');
+        router.push('/auth/forgot-password/reset');
       }
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'An error occurred');
+    } catch (error: any) {
+      const message =
+        error?.data?.message || error?.message || 'OTP verification failed';
+      toast.error(message);
     }
   };
 
   const handleResendOTP = async () => {
+    const email = sessionStorage.getItem(
+      purpose === 'signup' ? 'signup_email' : 'reset_email',
+    );
+    if (!email) {
+      toast.error('Email not found. Please try again.');
+      return;
+    }
+
     try {
-      const email = sessionStorage.getItem(
-        purpose === 'signup' ? 'signup_email' : 'reset_email',
-      );
-
-      if (!email) {
-        toast.error('Email not found. Please try again.');
-        return;
-      }
-
-      const endpoint = purpose === 'signup' 
-        ? API_ENDPOINTS.signup 
-        : API_ENDPOINTS.forgotPassword;
-
-      const payload = purpose === 'signup' 
-        ? { email }
-        : { email };
-
-      await callApi(endpoint, payload);
+      const resendEmailOtpRequest: ResendEmailOtpRequest = { email };
+      await resendEmailOtp({ resendEmailOtpRequest }).unwrap();
 
       toast.success('OTP resent to your email');
       setTimeLeft(600);
       setCanResend(false);
       setResendCooldown(30);
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Failed to resend OTP');
+    } catch (error: any) {
+      const message =
+        error?.data?.message || error?.message || 'Failed to resend OTP';
+      toast.error(message);
     }
   };
 
@@ -158,9 +145,8 @@ export function OTPVerifyForm({ purpose = 'signup' }: { purpose?: 'signup' | 're
             value={otpValue || ''}
             onChange={(e) => handleOTPChange(e.target.value)}
             maxLength={6}
-            className={`w-full text-center text-3xl tracking-widest font-mono py-3 px-4 border rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 ${
-              errors.otp ? 'border-destructive' : 'border-border'
-            }`}
+            className={`w-full text-center text-3xl tracking-widest font-mono py-3 px-4 border rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 ${errors.otp ? 'border-destructive' : 'border-border'
+              }`}
             autoFocus
           />
         </div>
@@ -178,7 +164,7 @@ export function OTPVerifyForm({ purpose = 'signup' }: { purpose?: 'signup' | 're
           <button
             type="button"
             onClick={handleResendOTP}
-            disabled={isSubmitting}
+            disabled={isVerifying || isResending}
             className="text-primary hover:underline font-medium text-sm"
           >
             Resend Code
@@ -193,10 +179,10 @@ export function OTPVerifyForm({ purpose = 'signup' }: { purpose?: 'signup' | 're
       {/* Submit Button */}
       <Button
         type="submit"
-        disabled={isSubmitting || !otpValue || otpValue.length !== 6}
+        disabled={isVerifying || !otpValue || otpValue.length !== 6}
         className="w-full"
       >
-        {isSubmitting ? 'Verifying...' : 'Verify Code'}
+        {isVerifying ? 'Verifying...' : 'Verify Code'}
       </Button>
     </form>
   );
