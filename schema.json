@@ -77,13 +77,21 @@
         ],
         "requestBody": {
           "content": {
-            "application/json": {
+            "multipart/form-data": {
               "schema": {
-                "$ref": "#/components/schemas/UniversityCreateRequest"
+                "type": "object",
+                "properties": {
+                  "request": {
+                    "$ref": "#/components/schemas/UniversityCreateRequest"
+                  },
+                  "logo": {
+                    "type": "string",
+                    "format": "binary"
+                  }
+                }
               }
             }
-          },
-          "required": true
+          }
         },
         "responses": {
           "200": {
@@ -683,13 +691,21 @@
         "operationId": "createUniversity",
         "requestBody": {
           "content": {
-            "application/json": {
+            "multipart/form-data": {
               "schema": {
-                "$ref": "#/components/schemas/UniversityCreateRequest"
+                "type": "object",
+                "properties": {
+                  "request": {
+                    "$ref": "#/components/schemas/UniversityCreateRequest"
+                  },
+                  "logo": {
+                    "type": "string",
+                    "format": "binary"
+                  }
+                }
               }
             }
-          },
-          "required": true
+          }
         },
         "responses": {
           "200": {
@@ -1160,6 +1176,36 @@
         }
       }
     },
+    "/api/auth/reset-password": {
+      "post": {
+        "tags": [
+          "Authentication"
+        ],
+        "operationId": "resetPassword",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ResetPasswordRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/auth/resend-email-otp": {
       "post": {
         "tags": [
@@ -1171,6 +1217,36 @@
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/ResendEmailOtpRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth/forgot-password": {
+      "post": {
+        "tags": [
+          "Authentication"
+        ],
+        "operationId": "forgotPassword",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ForgotPasswordRequest"
               }
             }
           },
@@ -2019,7 +2095,8 @@
           "username": {
             "type": "string",
             "maxLength": 20,
-            "minLength": 3
+            "minLength": 3,
+            "pattern": "^[a-zA-Z0-9._-]+$"
           },
           "email": {
             "type": "string",
@@ -2060,6 +2137,23 @@
           "username"
         ]
       },
+      "ResetPasswordRequest": {
+        "type": "object",
+        "properties": {
+          "token": {
+            "type": "string"
+          },
+          "newPassword": {
+            "type": "string",
+            "maxLength": 120,
+            "minLength": 6
+          }
+        },
+        "required": [
+          "newPassword",
+          "token"
+        ]
+      },
       "ResendEmailOtpRequest": {
         "type": "object",
         "properties": {
@@ -2067,6 +2161,17 @@
             "type": "string",
             "maxLength": 50,
             "minLength": 0
+          }
+        },
+        "required": [
+          "email"
+        ]
+      },
+      "ForgotPasswordRequest": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string"
           }
         },
         "required": [

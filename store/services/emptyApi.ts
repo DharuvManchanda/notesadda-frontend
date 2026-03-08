@@ -5,7 +5,7 @@ export const emptyApi = createApi({
   reducerPath: 'notespitaraApi',
   baseQuery: fetchBaseQuery({
     baseUrl: env.API_URL,
-    credentials: 'include', // send/receive HttpOnly cookies
+    credentials: 'include',
   }),
   endpoints: () => ({}),
 });

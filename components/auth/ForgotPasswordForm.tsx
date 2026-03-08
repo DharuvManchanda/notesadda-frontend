@@ -6,33 +6,32 @@ import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { notespitaraApi } from '@/store/services/notespitara';
-import type { ResendEmailOtpRequest } from '@/store/services/notespitara';
+import type { ForgotPasswordRequest } from '@/store/services/notespitara';
 import { toast } from 'sonner';
 import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
 
 export function ForgotPasswordForm() {
   const router = useRouter();
-  // Re-using resendEmailOtp since both send an OTP to the email
-  const [resendEmailOtp, { isLoading }] =
-    notespitaraApi.useResendEmailOtpMutation();
+  const [forgotPassword, { isLoading }] =
+    notespitaraApi.useForgotPasswordMutation();
 
   const {
     register,
     handleSubmit,
     formState: { errors },
-  } = useForm<ResendEmailOtpRequest>();
+  } = useForm<ForgotPasswordRequest>();
 
-  const onSubmit = async (data: ResendEmailOtpRequest) => {
+  const onSubmit = async (data: ForgotPasswordRequest) => {
     try {
-      await resendEmailOtp({ resendEmailOtpRequest: data }).unwrap();
+      await forgotPassword({ forgotPasswordRequest: data }).unwrap();
 
-      toast.success('OTP sent to your email!');
-      sessionStorage.setItem('reset_email', data.email);
-      router.push('/auth/forgot-password/otp');
+      toast.success('Password reset link sent to your email!');
+      // Assuming no OTP needed but an email link, we can just redirect to sign-in
+      router.push('/auth/signin');
     } catch (error: any) {
       const message =
-        error?.data?.message || error?.message || 'Failed to send OTP';
+        error?.data?.message || error?.message || 'Failed to send reset link';
       toast.error(message);
     }
   };
@@ -48,9 +47,9 @@ export function ForgotPasswordForm() {
           <ArrowLeft size={16} />
           Back to Sign In
         </button>
-        <h1 className="text-2xl font-bold text-foreground mb-2">Reset Password</h1>
+        <h1 className="text-2xl font-bold text-foreground mb-2">Forgot Password</h1>
         <p className="text-sm text-muted-foreground">
-          Enter your email address and we&apos;ll send you a code to reset your password
+          Enter your email address and we&apos;ll send you a link to reset your password
         </p>
       </div>
 
@@ -77,7 +76,7 @@ export function ForgotPasswordForm() {
 
       {/* Submit Button */}
       <Button type="submit" disabled={isLoading} className="w-full">
-        {isLoading ? 'Sending code...' : 'Send Reset Code'}
+        {isLoading ? 'Sending link...' : 'Send Reset Link'}
       </Button>
 
       {/* Sign In Link */}
