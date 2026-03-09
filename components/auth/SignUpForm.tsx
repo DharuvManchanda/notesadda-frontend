@@ -14,26 +14,38 @@ import { Eye, EyeOff } from 'lucide-react';
 export function SignUpForm() {
   const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
-  const [registerUser, { isLoading }] =
+  const [registerUser, { isLoading: isRegistering }] =
     notespitaraApi.useRegisterUserMutation();
 
-  // Check for existing unfinished signup session
-  useEffect(() => {
-    const activeEmail = localStorage.getItem('signup_email');
-    const activeTime = localStorage.getItem('signup_time');
+  const [activeEmail, setActiveEmail] = useState<string | null>(null);
 
-    if (activeEmail && activeTime) {
-      const elapsedSeconds = Math.floor((Date.now() - parseInt(activeTime, 10)) / 1000);
-      if (elapsedSeconds < 600) {
+  useEffect(() => {
+    setActiveEmail(localStorage.getItem('signup_email'));
+  }, []);
+
+  const { data: signupStatus, isLoading: isStatusLoading } = notespitaraApi.useGetSignupStatusQuery(
+    { email: activeEmail! },
+    { skip: !activeEmail, refetchOnMountOrArgChange: true }
+  );
+
+  // Check for existing unfinished signup session via API
+  useEffect(() => {
+    if (activeEmail && signupStatus) {
+      if (signupStatus.status === 'PENDING_VERIFICATION') {
         toast.info('You have a pending signup. Please verify your email.');
         router.push('/auth/signup/otp');
-      } else {
+      } else if (signupStatus.status === 'AVAILABLE') {
         // Expired, clear it out
         localStorage.removeItem('signup_email');
-        localStorage.removeItem('signup_time');
+        setActiveEmail(null);
+      } else if (signupStatus.status === 'ALREADY_REGISTERED') {
+        toast.error('This email is already registered.');
+        localStorage.removeItem('signup_email');
+        setActiveEmail(null);
+        router.push('/auth/signin');
       }
     }
-  }, [router]);
+  }, [activeEmail, signupStatus, router]);
 
   const {
     register,
@@ -47,7 +59,6 @@ export function SignUpForm() {
 
       toast.success('Signup successful! Check your email for OTP.');
       localStorage.setItem('signup_email', data.email);
-      localStorage.setItem('signup_time', Date.now().toString());
       router.push('/auth/signup/otp');
     } catch (error: any) {
       const message =
@@ -55,6 +66,8 @@ export function SignUpForm() {
       toast.error(message);
     }
   };
+
+  const isLoading = isRegistering || isStatusLoading;
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">

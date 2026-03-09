@@ -12,7 +12,6 @@ const _geistMono = Geist_Mono({ subsets: ["latin"] });
 export const metadata: Metadata = {
   title: 'NotesPitara - Share and Discover College Notes',
   description: 'A modern platform for college students to share, discover, and learn from notes across universities and programs.',
-  generator: 'v0.app',
   icons: {
     icon: [
       {
@@ -28,7 +27,7 @@ export const metadata: Metadata = {
         type: 'image/svg+xml',
       },
     ],
-    apple: '/notespitara.svg',
+    apple: '/notespitara.jpg',
   },
 }
 

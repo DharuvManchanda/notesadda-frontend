@@ -1904,6 +1904,36 @@
           }
         }
       }
+    },
+    "/api/auth/signup-status": {
+      "get": {
+        "tags": [
+          "Authentication"
+        ],
+        "operationId": "getSignupStatus",
+        "parameters": [
+          {
+            "name": "email",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/SignupStatusResponse"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -2177,6 +2207,22 @@
         "required": [
           "email"
         ]
+      },
+      "SignupStatusResponse": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string"
+          },
+          "otpExpiresInSeconds": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "resendCooldownSeconds": {
+            "type": "integer",
+            "format": "int64"
+          }
+        }
       }
     },
     "securitySchemes": {

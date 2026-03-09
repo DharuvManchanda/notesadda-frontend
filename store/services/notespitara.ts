@@ -644,6 +644,21 @@ const injectedRtkApi = api
         query: () => ({ url: `/api/auth/user` }),
         providesTags: ["Authentication"],
       }),
+      getSignupStatus: build.query<
+        GetSignupStatusApiResponse,
+        GetSignupStatusApiArg
+      >({
+        query: (queryArg) => ({
+          url: `/api/auth/signup-status`,
+          params: {
+            email:
+              queryArg.email != null
+                ? encodeURIComponent(String(queryArg.email))
+                : undefined,
+          },
+        }),
+        providesTags: ["Authentication"],
+      }),
     }),
     overrideExisting: false,
   });
@@ -886,6 +901,11 @@ export type CurrentUserNameApiResponse = /** status 200 OK */ string;
 export type CurrentUserNameApiArg = void;
 export type GetUserDetailsApiResponse = /** status 200 OK */ object;
 export type GetUserDetailsApiArg = void;
+export type GetSignupStatusApiResponse =
+  /** status 200 OK */ SignupStatusResponse;
+export type GetSignupStatusApiArg = {
+  email: string;
+};
 export type UniversityCreateRequest = {
   name: string;
   code: string;
@@ -948,4 +968,9 @@ export type ResendEmailOtpRequest = {
 };
 export type ForgotPasswordRequest = {
   email: string;
+};
+export type SignupStatusResponse = {
+  status?: string;
+  otpExpiresInSeconds?: number;
+  resendCooldownSeconds?: number;
 };

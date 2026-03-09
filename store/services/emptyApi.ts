@@ -6,6 +6,14 @@ export const emptyApi = createApi({
   baseQuery: fetchBaseQuery({
     baseUrl: env.API_URL,
     credentials: 'include',
+    paramsSerializer: (params) => {
+      const parts: string[] = [];
+      for (const [key, value] of Object.entries(params)) {
+        if (value == null) continue;
+        parts.push(`${encodeURIComponent(key)}=${value}`);
+      }
+      return parts.join('&');
+    },
   }),
   endpoints: () => ({}),
 });

@@ -11,9 +11,9 @@ import { ArrowLeft } from 'lucide-react';
 
 export function OTPVerifyForm({ purpose = 'signup' }: { purpose?: 'signup' | 'reset' }) {
   const router = useRouter();
-  const [timeLeft, setTimeLeft] = useState(600);
+  const [timeLeft, setTimeLeft] = useState(0);
   const [canResend, setCanResend] = useState(false);
-  const [resendCooldown, setResendCooldown] = useState(60);
+  const [resendCooldown, setResendCooldown] = useState(0);
 
   const [verifyEmailOtp, { isLoading: isVerifying }] =
     notespitaraApi.useVerifyEmailOtpMutation();
@@ -31,34 +31,66 @@ export function OTPVerifyForm({ purpose = 'signup' }: { purpose?: 'signup' | 're
 
   const otpValue = watch('otp');
 
-  // Load email from localStorage and calculate remaining time
+  const [activeEmail, setActiveEmail] = useState<string | null>(null);
+
+  // Load email from localStorage
   useEffect(() => {
     const emailKey = purpose === 'signup' ? 'signup_email' : 'reset_email';
-    const timeKey = purpose === 'signup' ? 'signup_time' : 'reset_time';
-
     const email = localStorage.getItem(emailKey);
-    const startTimeStamp = localStorage.getItem(timeKey);
-
-    if (email && startTimeStamp) {
+    if (email) {
       setValue('email', email);
-
-      // Calculate remaining time out of the 10-minute (600s) window
-      const elapsedSeconds = Math.floor((Date.now() - parseInt(startTimeStamp, 10)) / 1000);
-      const remaining = Math.max(0, 600 - elapsedSeconds);
-
-      if (remaining === 0) {
-        toast.error('OTP session expired. Please sign up again.');
-        localStorage.removeItem(emailKey);
-        localStorage.removeItem(timeKey);
-        router.push(purpose === 'signup' ? '/auth/signup' : '/auth/forgot-password');
-      } else {
-        setTimeLeft(remaining);
-      }
+      setActiveEmail(email);
     } else {
       toast.error('Email not found. Please try again.');
       router.push(purpose === 'signup' ? '/auth/signup' : '/auth/forgot-password');
     }
   }, [purpose, router, setValue]);
+
+  // For signup, use API to track status
+  const { data: signupStatus, refetch: refetchSignupStatus, isFetching: isStatusFetching } = notespitaraApi.useGetSignupStatusQuery(
+    { email: activeEmail! },
+    {
+      skip: !activeEmail || purpose !== 'signup',
+      refetchOnMountOrArgChange: true
+    }
+  );
+
+  // Init timers based on API status or localStorage (for reset) 
+  useEffect(() => {
+    if (purpose === 'signup') {
+      if (signupStatus && !isStatusFetching) {
+        if (signupStatus.status === 'AVAILABLE') {
+          toast.error('OTP session expired. Please sign up again.');
+          localStorage.removeItem('signup_email');
+          router.push('/auth/signup');
+        } else if (signupStatus.status === 'PENDING_VERIFICATION') {
+          setTimeLeft(signupStatus.otpExpiresInSeconds ?? 0);
+          setResendCooldown(signupStatus.resendCooldownSeconds ?? 0);
+          setCanResend((signupStatus.resendCooldownSeconds ?? 0) <= 0);
+        } else if (signupStatus.status === 'ALREADY_REGISTERED') {
+          toast.error('This email is already registered.');
+          localStorage.removeItem('signup_email');
+          router.push('/auth/signin');
+        }
+      }
+    } else {
+      // Code for purpose === 'reset' remains unchanged conceptually but time retrieval needs handling
+      const timeKey = 'reset_time';
+      const startTimeStamp = localStorage.getItem(timeKey);
+      if (startTimeStamp) {
+        const elapsedSeconds = Math.floor((Date.now() - parseInt(startTimeStamp, 10)) / 1000);
+        const remaining = Math.max(0, 600 - elapsedSeconds);
+        if (remaining === 0) {
+          toast.error('OTP session expired. Please try again.');
+          localStorage.removeItem('reset_email');
+          localStorage.removeItem('reset_time');
+          router.push('/auth/forgot-password');
+        } else {
+          setTimeLeft(remaining);
+        }
+      }
+    }
+  }, [purpose, signupStatus, router]);
 
   // OTP expiry timer
   useEffect(() => {
@@ -88,9 +120,8 @@ export function OTPVerifyForm({ purpose = 'signup' }: { purpose?: 'signup' | 're
       await verifyEmailOtp({ verifyEmailOtpRequest: data }).unwrap();
 
       toast.success('OTP verified successfully!');
-      localStorage.setItem('otp_verified', 'true');
       localStorage.removeItem(purpose === 'signup' ? 'signup_email' : 'reset_email');
-      localStorage.removeItem(purpose === 'signup' ? 'signup_time' : 'reset_time');
+      if (purpose === 'reset') localStorage.removeItem('reset_time');
 
       if (purpose === 'signup') {
         router.push('/auth/signin'); // Redirecting to sign in after successful signup verify
@@ -105,24 +136,22 @@ export function OTPVerifyForm({ purpose = 'signup' }: { purpose?: 'signup' | 're
   };
 
   const handleResendOTP = async () => {
-    const emailKey = purpose === 'signup' ? 'signup_email' : 'reset_email';
-    const email = localStorage.getItem(emailKey);
-
-    if (!email) {
-      toast.error('Email not found. Please try again.');
-      return;
-    }
+    if (!activeEmail) return;
 
     try {
-      const resendEmailOtpRequest: ResendEmailOtpRequest = { email };
+      const resendEmailOtpRequest: ResendEmailOtpRequest = { email: activeEmail };
       await resendEmailOtp({ resendEmailOtpRequest }).unwrap();
 
       toast.success('OTP resent to your email');
-      // Reset the start time for the 10-minute validity
-      localStorage.setItem(purpose === 'signup' ? 'signup_time' : 'reset_time', Date.now().toString());
-      setTimeLeft(600);
-      setCanResend(false);
-      setResendCooldown(60); // Set to 60 seconds as requested
+      if (purpose === 'signup') {
+        // Refetch status to get new timers from the backend
+        refetchSignupStatus();
+      } else {
+        localStorage.setItem('reset_time', Date.now().toString());
+        setTimeLeft(600);
+        setCanResend(false);
+        setResendCooldown(60);
+      }
     } catch (error: any) {
       const message =
         error?.data?.message || error?.message || 'Failed to resend OTP';
@@ -134,6 +163,13 @@ export function OTPVerifyForm({ purpose = 'signup' }: { purpose?: 'signup' | 're
     if (value.length <= 6 && /^\d*$/.test(value)) {
       setValue('otp', value);
     }
+  };
+
+  const handleCancelSignup = () => {
+    localStorage.removeItem(purpose === 'signup' ? 'signup_email' : 'reset_email');
+    if (purpose === 'reset') localStorage.removeItem('reset_time');
+    toast.info('Verification cancelled.');
+    router.push('/');
   };
 
   return (
@@ -197,14 +233,25 @@ export function OTPVerifyForm({ purpose = 'signup' }: { purpose?: 'signup' | 're
         )}
       </div>
 
-      {/* Submit Button */}
-      <Button
-        type="submit"
-        disabled={isVerifying || !otpValue || otpValue.length !== 6}
-        className="w-full"
-      >
-        {isVerifying ? 'Verifying...' : 'Verify Code'}
-      </Button>
+      {/* Submit / Cancel Buttons */}
+      <div className="space-y-3">
+        <Button
+          type="submit"
+          disabled={isVerifying || !otpValue || otpValue.length !== 6}
+          className="w-full"
+        >
+          {isVerifying ? 'Verifying...' : 'Verify Code'}
+        </Button>
+        <Button
+          type="button"
+          variant="outline"
+          onClick={handleCancelSignup}
+          disabled={isVerifying || isResending}
+          className="w-full"
+        >
+          Cancel
+        </Button>
+      </div>
     </form>
   );
 }
