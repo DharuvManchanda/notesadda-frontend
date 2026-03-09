@@ -50,7 +50,6 @@ export function Header() {
 
             {isAuthenticated && user ? (
               <div className="flex items-center gap-3">
-                <span className="text-sm text-muted-foreground hidden sm:inline">{user.username}</span>
                 <AlertDialog>
                   <AlertDialogTrigger asChild>
                     <Button

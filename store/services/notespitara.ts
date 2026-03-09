@@ -21,7 +21,7 @@ const injectedRtkApi = api
         query: (queryArg) => ({
           url: `/api/universities/${encodeURIComponent(String(queryArg.id))}`,
           method: "PUT",
-          body: queryArg.universityCreateRequest,
+          body: queryArg.body,
         }),
         invalidatesTags: ["Universities"],
       }),
@@ -206,7 +206,7 @@ const injectedRtkApi = api
         query: (queryArg) => ({
           url: `/api/universities`,
           method: "POST",
-          body: queryArg.universityCreateRequest,
+          body: queryArg.body,
         }),
         invalidatesTags: ["Universities"],
       }),
@@ -384,6 +384,17 @@ const injectedRtkApi = api
         }),
         invalidatesTags: ["Authentication"],
       }),
+      resetPassword: build.mutation<
+        ResetPasswordApiResponse,
+        ResetPasswordApiArg
+      >({
+        query: (queryArg) => ({
+          url: `/api/auth/reset-password`,
+          method: "POST",
+          body: queryArg.resetPasswordRequest,
+        }),
+        invalidatesTags: ["Authentication"],
+      }),
       resendEmailOtp: build.mutation<
         ResendEmailOtpApiResponse,
         ResendEmailOtpApiArg
@@ -392,6 +403,17 @@ const injectedRtkApi = api
           url: `/api/auth/resend-email-otp`,
           method: "POST",
           body: queryArg.resendEmailOtpRequest,
+        }),
+        invalidatesTags: ["Authentication"],
+      }),
+      forgotPassword: build.mutation<
+        ForgotPasswordApiResponse,
+        ForgotPasswordApiArg
+      >({
+        query: (queryArg) => ({
+          url: `/api/auth/forgot-password`,
+          method: "POST",
+          body: queryArg.forgotPasswordRequest,
         }),
         invalidatesTags: ["Authentication"],
       }),
@@ -629,7 +651,10 @@ export { injectedRtkApi as notespitaraApi };
 export type UpdateUniversityApiResponse = /** status 200 OK */ object;
 export type UpdateUniversityApiArg = {
   id: string;
-  universityCreateRequest: UniversityCreateRequest;
+  body: {
+    request?: UniversityCreateRequest;
+    logo?: Blob;
+  };
 };
 export type DeleteUniversityApiResponse = /** status 200 OK */ object;
 export type DeleteUniversityApiArg = {
@@ -708,7 +733,10 @@ export type GetAllUniversitiesApiArg = {
 };
 export type CreateUniversityApiResponse = /** status 200 OK */ object;
 export type CreateUniversityApiArg = {
-  universityCreateRequest: UniversityCreateRequest;
+  body: {
+    request?: UniversityCreateRequest;
+    logo?: Blob;
+  };
 };
 export type GetSubjectsApiResponse = /** status 200 OK */ object;
 export type GetSubjectsApiArg = {
@@ -769,9 +797,17 @@ export type AuthenticateUserApiResponse = /** status 200 OK */ object;
 export type AuthenticateUserApiArg = {
   loginRequest: LoginRequest;
 };
+export type ResetPasswordApiResponse = /** status 200 OK */ object;
+export type ResetPasswordApiArg = {
+  resetPasswordRequest: ResetPasswordRequest;
+};
 export type ResendEmailOtpApiResponse = /** status 200 OK */ object;
 export type ResendEmailOtpApiArg = {
   resendEmailOtpRequest: ResendEmailOtpRequest;
+};
+export type ForgotPasswordApiResponse = /** status 200 OK */ object;
+export type ForgotPasswordApiArg = {
+  forgotPasswordRequest: ForgotPasswordRequest;
 };
 export type GetProgramsByUniversityApiResponse = /** status 200 OK */ object;
 export type GetProgramsByUniversityApiArg = {
@@ -903,6 +939,13 @@ export type LoginRequest = {
   username: string;
   password: string;
 };
+export type ResetPasswordRequest = {
+  token: string;
+  newPassword: string;
+};
 export type ResendEmailOtpRequest = {
+  email: string;
+};
+export type ForgotPasswordRequest = {
   email: string;
 };

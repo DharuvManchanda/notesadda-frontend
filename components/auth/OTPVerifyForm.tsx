@@ -13,7 +13,7 @@ export function OTPVerifyForm({ purpose = 'signup' }: { purpose?: 'signup' | 're
   const router = useRouter();
   const [timeLeft, setTimeLeft] = useState(600);
   const [canResend, setCanResend] = useState(false);
-  const [resendCooldown, setResendCooldown] = useState(30);
+  const [resendCooldown, setResendCooldown] = useState(60);
 
   const [verifyEmailOtp, { isLoading: isVerifying }] =
     notespitaraApi.useVerifyEmailOtpMutation();
@@ -31,13 +31,29 @@ export function OTPVerifyForm({ purpose = 'signup' }: { purpose?: 'signup' | 're
 
   const otpValue = watch('otp');
 
-  // Load email from sessionStorage on mount
+  // Load email from localStorage and calculate remaining time
   useEffect(() => {
-    const email = sessionStorage.getItem(
-      purpose === 'signup' ? 'signup_email' : 'reset_email',
-    );
-    if (email) {
+    const emailKey = purpose === 'signup' ? 'signup_email' : 'reset_email';
+    const timeKey = purpose === 'signup' ? 'signup_time' : 'reset_time';
+
+    const email = localStorage.getItem(emailKey);
+    const startTimeStamp = localStorage.getItem(timeKey);
+
+    if (email && startTimeStamp) {
       setValue('email', email);
+
+      // Calculate remaining time out of the 10-minute (600s) window
+      const elapsedSeconds = Math.floor((Date.now() - parseInt(startTimeStamp, 10)) / 1000);
+      const remaining = Math.max(0, 600 - elapsedSeconds);
+
+      if (remaining === 0) {
+        toast.error('OTP session expired. Please sign up again.');
+        localStorage.removeItem(emailKey);
+        localStorage.removeItem(timeKey);
+        router.push(purpose === 'signup' ? '/auth/signup' : '/auth/forgot-password');
+      } else {
+        setTimeLeft(remaining);
+      }
     } else {
       toast.error('Email not found. Please try again.');
       router.push(purpose === 'signup' ? '/auth/signup' : '/auth/forgot-password');
@@ -72,9 +88,12 @@ export function OTPVerifyForm({ purpose = 'signup' }: { purpose?: 'signup' | 're
       await verifyEmailOtp({ verifyEmailOtpRequest: data }).unwrap();
 
       toast.success('OTP verified successfully!');
-      sessionStorage.setItem('otp_verified', 'true');
+      localStorage.setItem('otp_verified', 'true');
+      localStorage.removeItem(purpose === 'signup' ? 'signup_email' : 'reset_email');
+      localStorage.removeItem(purpose === 'signup' ? 'signup_time' : 'reset_time');
+
       if (purpose === 'signup') {
-        router.push('/');
+        router.push('/auth/signin'); // Redirecting to sign in after successful signup verify
       } else {
         router.push('/auth/forgot-password/reset');
       }
@@ -86,9 +105,9 @@ export function OTPVerifyForm({ purpose = 'signup' }: { purpose?: 'signup' | 're
   };
 
   const handleResendOTP = async () => {
-    const email = sessionStorage.getItem(
-      purpose === 'signup' ? 'signup_email' : 'reset_email',
-    );
+    const emailKey = purpose === 'signup' ? 'signup_email' : 'reset_email';
+    const email = localStorage.getItem(emailKey);
+
     if (!email) {
       toast.error('Email not found. Please try again.');
       return;
@@ -99,9 +118,11 @@ export function OTPVerifyForm({ purpose = 'signup' }: { purpose?: 'signup' | 're
       await resendEmailOtp({ resendEmailOtpRequest }).unwrap();
 
       toast.success('OTP resent to your email');
+      // Reset the start time for the 10-minute validity
+      localStorage.setItem(purpose === 'signup' ? 'signup_time' : 'reset_time', Date.now().toString());
       setTimeLeft(600);
       setCanResend(false);
-      setResendCooldown(30);
+      setResendCooldown(60); // Set to 60 seconds as requested
     } catch (error: any) {
       const message =
         error?.data?.message || error?.message || 'Failed to resend OTP';

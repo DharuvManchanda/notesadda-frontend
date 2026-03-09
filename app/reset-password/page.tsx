@@ -1,3 +1,4 @@
+import React, { Suspense } from 'react';
 import { AuthCard } from '@/components/auth/AuthCard';
 import { ResetPasswordForm } from '@/components/auth/ResetPasswordForm';
 
@@ -9,7 +10,9 @@ export const metadata = {
 export default function ResetPasswordPage() {
   return (
     <AuthCard>
-      <ResetPasswordForm />
+      <Suspense fallback={<div className="p-4 text-center">Loading...</div>}>
+        <ResetPasswordForm />
+      </Suspense>
     </AuthCard>
   );
 }

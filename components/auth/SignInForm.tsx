@@ -69,13 +69,13 @@ export function SignInForm() {
       {/* Username */}
       <div className="space-y-2">
         <label htmlFor="username" className="block text-sm font-medium text-foreground">
-          Username
+          Username or Email
         </label>
         <Input
           id="username"
           type="text"
-          placeholder="john_doe"
-          {...register('username', { required: 'Username is required' })}
+          placeholder="john or john@gmail.com"
+          {...register('username', { required: 'Username or Email is required' })}
           className={errors.username ? 'border-destructive' : ''}
         />
         {errors.username && (

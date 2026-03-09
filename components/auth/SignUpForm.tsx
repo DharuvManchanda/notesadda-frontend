@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
@@ -17,6 +17,24 @@ export function SignUpForm() {
   const [registerUser, { isLoading }] =
     notespitaraApi.useRegisterUserMutation();
 
+  // Check for existing unfinished signup session
+  useEffect(() => {
+    const activeEmail = localStorage.getItem('signup_email');
+    const activeTime = localStorage.getItem('signup_time');
+
+    if (activeEmail && activeTime) {
+      const elapsedSeconds = Math.floor((Date.now() - parseInt(activeTime, 10)) / 1000);
+      if (elapsedSeconds < 600) {
+        toast.info('You have a pending signup. Please verify your email.');
+        router.push('/auth/signup/otp');
+      } else {
+        // Expired, clear it out
+        localStorage.removeItem('signup_email');
+        localStorage.removeItem('signup_time');
+      }
+    }
+  }, [router]);
+
   const {
     register,
     handleSubmit,
@@ -28,7 +46,8 @@ export function SignUpForm() {
       await registerUser({ signupRequest: data }).unwrap();
 
       toast.success('Signup successful! Check your email for OTP.');
-      sessionStorage.setItem('signup_email', data.email);
+      localStorage.setItem('signup_email', data.email);
+      localStorage.setItem('signup_time', Date.now().toString());
       router.push('/auth/signup/otp');
     } catch (error: any) {
       const message =

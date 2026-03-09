@@ -2,54 +2,64 @@
 
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { notespitaraApi } from '@/store/services/notespitara';
+import type { ResetPasswordRequest } from '@/store/services/notespitara';
 import { toast } from 'sonner';
 import { Eye, EyeOff, ArrowLeft } from 'lucide-react';
 
-interface ResetPasswordData {
-  password: string;
+interface ResetPasswordFormData extends ResetPasswordRequest {
   confirmPassword: string;
 }
 
 export function ResetPasswordForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const token = searchParams.get('token') || '';
+
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const [resetPassword, { isLoading: isSubmitting }] =
+    notespitaraApi.useResetPasswordMutation();
 
   const {
     register,
     handleSubmit,
     formState: { errors },
     watch,
-  } = useForm<ResetPasswordData>();
+  } = useForm<ResetPasswordFormData>({
+    defaultValues: {
+      token: token,
+      newPassword: '',
+      confirmPassword: '',
+    },
+  });
 
-  const password = watch('password');
+  const newPasswordValue = watch('newPassword');
 
-  const onSubmit = async (data: ResetPasswordData) => {
+  const onSubmit = async (data: ResetPasswordFormData) => {
     try {
-      setIsSubmitting(true);
-      const email = sessionStorage.getItem('reset_email');
-
-      if (!email) {
-        toast.error('Email not found. Please try again.');
-        router.push('/auth/forgot-password');
+      if (!token) {
+        toast.error('Invalid or missing reset token.');
         return;
       }
 
-      // TODO: Replace with actual reset-password endpoint when backend supports it
+      const request: ResetPasswordRequest = {
+        token: data.token,
+        newPassword: data.newPassword,
+      };
+
+      await resetPassword({ resetPasswordRequest: request }).unwrap();
+
       toast.success('Password reset successfully!');
-      sessionStorage.removeItem('reset_email');
-      sessionStorage.removeItem('otp_verified');
       router.push('/auth/signin');
     } catch (error: any) {
       const message =
         error?.data?.message || error?.message || 'Password reset failed';
       toast.error(message);
-    } finally {
-      setIsSubmitting(false);
     }
   };
 
@@ -58,11 +68,11 @@ export function ResetPasswordForm() {
       <div>
         <button
           type="button"
-          onClick={() => router.back()}
+          onClick={() => router.push('/auth/signin')}
           className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mb-4 transition-colors"
         >
           <ArrowLeft size={16} />
-          Go back
+          Back to Sign In
         </button>
         <h1 className="text-2xl font-bold text-foreground mb-2">Create New Password</h1>
         <p className="text-sm text-muted-foreground">
@@ -70,17 +80,20 @@ export function ResetPasswordForm() {
         </p>
       </div>
 
+      {/* Hidden input for token (just to be safe/part of form) */}
+      <input type="hidden" {...register('token')} />
+
       {/* New Password */}
       <div className="space-y-2">
-        <label htmlFor="password" className="block text-sm font-medium text-foreground">
+        <label htmlFor="newPassword" className="block text-sm font-medium text-foreground">
           New Password
         </label>
         <div className="relative">
           <Input
-            id="password"
+            id="newPassword"
             type={showPassword ? 'text' : 'password'}
             placeholder="••••••••"
-            {...register('password', {
+            {...register('newPassword', {
               required: 'Password is required',
               minLength: { value: 8, message: 'Password must be at least 8 characters' },
               validate: {
@@ -89,7 +102,7 @@ export function ResetPasswordForm() {
                 hasNumber: (v) => /[0-9]/.test(v) || 'Must contain a number',
               },
             })}
-            className={errors.password ? 'border-destructive pr-10' : 'pr-10'}
+            className={errors.newPassword ? 'border-destructive pr-10' : 'pr-10'}
             autoFocus
           />
           <button
@@ -100,8 +113,8 @@ export function ResetPasswordForm() {
             {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
           </button>
         </div>
-        {errors.password && (
-          <p className="text-xs text-destructive">{errors.password.message}</p>
+        {errors.newPassword && (
+          <p className="text-xs text-destructive">{errors.newPassword.message}</p>
         )}
         <p className="text-xs text-muted-foreground mt-1">
           Must contain uppercase, lowercase, and number
@@ -120,7 +133,7 @@ export function ResetPasswordForm() {
             placeholder="••••••••"
             {...register('confirmPassword', {
               required: 'Please confirm your password',
-              validate: (v) => v === password || 'Passwords do not match',
+              validate: (v) => v === newPasswordValue || 'Passwords do not match',
             })}
             className={errors.confirmPassword ? 'border-destructive pr-10' : 'pr-10'}
           />
@@ -138,9 +151,14 @@ export function ResetPasswordForm() {
       </div>
 
       {/* Submit Button */}
-      <Button type="submit" disabled={isSubmitting || !password} className="w-full">
+      <Button type="submit" disabled={isSubmitting || !token} className="w-full">
         {isSubmitting ? 'Resetting password...' : 'Reset Password'}
       </Button>
+      {!token && (
+        <p className="text-xs text-destructive text-center mt-2">
+          Missing reset token. Please use the exact link from your email.
+        </p>
+      )}
     </form>
   );
 }
