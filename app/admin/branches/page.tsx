@@ -3,81 +3,77 @@
 import { useState } from 'react';
 import { AdminLayout } from '@/components/admin/AdminLayout';
 import { AdminHeader } from '@/components/admin/AdminHeader';
-import { AddSubjectForm } from '@/components/admin/forms/AddSubjectForm';
+import { AddBranchForm } from '@/components/admin/forms/AddBranchForm';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Edit2, Trash2, Eye } from 'lucide-react';
 
 // Mock data
-const mockSemesters = [
-  { id: '1', name: 'CSE - Semester 1' },
-  { id: '2', name: 'CSE - Semester 2' },
-  { id: '3', name: 'CSE - Semester 3' },
+const mockPrograms = [
+  { id: '1', name: 'Bachelor of Technology' },
+  { id: '2', name: 'Bachelor of Computer Applications' },
+  { id: '3', name: 'Master of Computer Applications' },
 ];
 
-const mockSubjects = [
+const mockBranches = [
   {
     id: '1',
-    name: 'Data Structures',
-    code: 'CS201',
-    credits: 4,
-    semesterId: '1',
-    semesterName: 'CSE - Semester 1',
-    notes: 45,
+    name: 'Computer Science Engineering',
+    code: 'CSE',
+    programId: '1',
+    programName: 'Bachelor of Technology',
+    semesters: 8,
   },
   {
     id: '2',
-    name: 'Database Management Systems',
-    code: 'CS202',
-    credits: 4,
-    semesterId: '1',
-    semesterName: 'CSE - Semester 1',
-    notes: 38,
+    name: 'Electronics Engineering',
+    code: 'ECE',
+    programId: '1',
+    programName: 'Bachelor of Technology',
+    semesters: 8,
   },
   {
     id: '3',
-    name: 'Operating Systems',
-    code: 'CS301',
-    credits: 4,
-    semesterId: '2',
-    semesterName: 'CSE - Semester 2',
-    notes: 52,
+    name: 'Mechanical Engineering',
+    code: 'ME',
+    programId: '1',
+    programName: 'Bachelor of Technology',
+    semesters: 8,
   },
   {
     id: '4',
-    name: 'Object Oriented Programming',
-    code: 'CS202',
-    credits: 3,
-    semesterId: '1',
-    semesterName: 'CSE - Semester 1',
-    notes: 28,
+    name: 'Computer Science',
+    code: 'CS',
+    programId: '2',
+    programName: 'Bachelor of Computer Applications',
+    semesters: 6,
   },
 ];
 
-export default function SubjectsPage() {
+export default function BranchesPage() {
   const [searchTerm, setSearchTerm] = useState('');
-  const [subjects, setSubjects] = useState(mockSubjects);
+  const [branches, setBranches] = useState(mockBranches);
   const [openDialog, setOpenDialog] = useState(false);
 
-  const filteredSubjects = subjects.filter((subject) =>
-    subject.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    subject.code.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredBranches = branches.filter((branch) =>
+    branch.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    branch.code.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const handleAddSuccess = () => {
-    console.log('Subject added successfully');
+    console.log('Branch added successfully');
   };
 
   return (
     <AdminLayout>
       <div className="space-y-6">
         <AdminHeader
-          title="Subjects"
-          description="Manage academic subjects"
-          searchPlaceholder="Search subjects..."
+          title="Branches"
+          description="Manage academic branches"
+          searchPlaceholder="Search branches..."
           onSearch={setSearchTerm}
           onAdd={() => setOpenDialog(true)}
-          addButtonLabel="Add Subject"
+          addButtonLabel="Add Branch"
         />
 
         <div className="px-6">
@@ -87,32 +83,28 @@ export default function SubjectsPage() {
                 <tr className="border-b border-border bg-muted/50">
                   <th className="px-6 py-3 text-left text-sm font-semibold text-foreground">Name</th>
                   <th className="px-6 py-3 text-left text-sm font-semibold text-foreground">Code</th>
-                  <th className="px-6 py-3 text-left text-sm font-semibold text-foreground">Semester</th>
-                  <th className="px-6 py-3 text-left text-sm font-semibold text-foreground">Credits</th>
-                  <th className="px-6 py-3 text-left text-sm font-semibold text-foreground">Notes</th>
+                  <th className="px-6 py-3 text-left text-sm font-semibold text-foreground">Program</th>
+                  <th className="px-6 py-3 text-left text-sm font-semibold text-foreground">Semesters</th>
                   <th className="px-6 py-3 text-right text-sm font-semibold text-foreground">Actions</th>
                 </tr>
               </thead>
               <tbody>
-                {filteredSubjects.map((subject) => (
-                  <tr key={subject.id} className="border-b border-border hover:bg-muted/50 transition-colors">
-                    <td className="px-6 py-3 text-sm text-foreground font-medium">{subject.name}</td>
+                {filteredBranches.map((branch) => (
+                  <tr key={branch.id} className="border-b border-border hover:bg-muted/50 transition-colors">
+                    <td className="px-6 py-3 text-sm text-foreground font-medium">{branch.name}</td>
                     <td className="px-6 py-3 text-sm text-muted-foreground">
-                      <Badge variant="outline">{subject.code}</Badge>
+                      <Badge variant="outline">{branch.code}</Badge>
                     </td>
-                    <td className="px-6 py-3 text-sm text-muted-foreground">{subject.semesterName}</td>
+                    <td className="px-6 py-3 text-sm text-muted-foreground">{branch.programName}</td>
                     <td className="px-6 py-3 text-sm text-muted-foreground">
-                      <Badge>{subject.credits}</Badge>
-                    </td>
-                    <td className="px-6 py-3 text-sm text-muted-foreground">
-                      <Badge variant="secondary">{subject.notes}</Badge>
+                      <Badge>{branch.semesters}</Badge>
                     </td>
                     <td className="px-6 py-3 text-right">
                       <div className="flex justify-end gap-2">
                         <Button
                           size="sm"
                           variant="ghost"
-                          onClick={() => console.log('View', subject.id)}
+                          onClick={() => console.log('View', branch.id)}
                           title="View details"
                         >
                           <Eye className="h-4 w-4" />
@@ -120,8 +112,8 @@ export default function SubjectsPage() {
                         <Button
                           size="sm"
                           variant="ghost"
-                          onClick={() => console.log('Edit', subject.id)}
-                          title="Edit subject"
+                          onClick={() => console.log('Edit', branch.id)}
+                          title="Edit branch"
                         >
                           <Edit2 className="h-4 w-4" />
                         </Button>
@@ -129,8 +121,8 @@ export default function SubjectsPage() {
                           size="sm"
                           variant="ghost"
                           className="text-destructive hover:text-destructive"
-                          onClick={() => console.log('Delete', subject.id)}
-                          title="Delete subject"
+                          onClick={() => console.log('Delete', branch.id)}
+                          title="Delete branch"
                         >
                           <Trash2 className="h-4 w-4" />
                         </Button>
@@ -141,19 +133,19 @@ export default function SubjectsPage() {
               </tbody>
             </table>
 
-            {filteredSubjects.length === 0 && (
+            {filteredBranches.length === 0 && (
               <div className="p-8 text-center text-muted-foreground">
-                No subjects found
+                No branches found
               </div>
             )}
           </div>
         </div>
       </div>
 
-      <AddSubjectForm
+      <AddBranchForm
         open={openDialog}
         onOpenChange={setOpenDialog}
-        semesters={mockSemesters}
+        programs={mockPrograms}
         onSuccess={handleAddSuccess}
       />
     </AdminLayout>
