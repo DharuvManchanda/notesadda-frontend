@@ -23,6 +23,7 @@ export function AddSubjectForm({ open, onOpenChange, semesters, onSuccess }: Add
     code: '',
     credits: '',
     semesterId: '',
+    description: '',
     syllabusUrl: '',
   });
 
@@ -44,7 +45,7 @@ export function AddSubjectForm({ open, onOpenChange, semesters, onSuccess }: Add
       
       console.log('Adding subject:', formData);
       
-      setFormData({ name: '', code: '', credits: '', semesterId: '', syllabusUrl: '' });
+      setFormData({ name: '', code: '', credits: '', semesterId: '', description: '', syllabusUrl: '' });
       onOpenChange(false);
       onSuccess?.();
     } catch (error) {
@@ -116,6 +117,18 @@ export function AddSubjectForm({ open, onOpenChange, semesters, onSuccess }: Add
               value={formData.credits}
               onChange={handleChange}
               required
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="description">Description</Label>
+            <Textarea
+              id="description"
+              name="description"
+              placeholder="Brief description of the subject content and objectives"
+              value={formData.description}
+              onChange={handleChange}
+              rows={3}
             />
           </div>
 

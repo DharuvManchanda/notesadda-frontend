@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Loader2 } from 'lucide-react';
@@ -21,9 +22,10 @@ export function AddBranchForm({ open, onOpenChange, programs, onSuccess }: AddBr
     name: '',
     code: '',
     programId: '',
+    description: '',
   });
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
       ...prev,
@@ -41,7 +43,7 @@ export function AddBranchForm({ open, onOpenChange, programs, onSuccess }: AddBr
       
       console.log('Adding branch:', formData);
       
-      setFormData({ name: '', code: '', programId: '' });
+      setFormData({ name: '', code: '', programId: '', description: '' });
       onOpenChange(false);
       onSuccess?.();
     } catch (error) {
@@ -99,6 +101,18 @@ export function AddBranchForm({ open, onOpenChange, programs, onSuccess }: AddBr
                 required
               />
             </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="description">Description</Label>
+            <Textarea
+              id="description"
+              name="description"
+              placeholder="Brief description of the branch"
+              value={formData.description}
+              onChange={handleChange}
+              rows={3}
+            />
           </div>
 
           <div className="flex gap-3 justify-end pt-4">
