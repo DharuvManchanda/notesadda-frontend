@@ -3,60 +3,43 @@
 import { useState } from 'react';
 import { AdminLayout } from '@/components/admin/AdminLayout';
 import { AdminHeader } from '@/components/admin/AdminHeader';
-import { AddProgramForm } from '@/components/admin/forms/AddProgramForm';
+import { ProgramForm } from '@/components/admin/forms/ProgramForm';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Edit2, Trash2, Eye } from 'lucide-react';
-
-// Mock data
-const mockUniversities = [
-  { id: '1', name: 'Punjab Technical University' },
-  { id: '2', name: 'Delhi University' },
-  { id: '3', name: 'Mumbai University' },
-];
-
-const mockPrograms = [
-  {
-    id: '1',
-    name: 'Bachelor of Technology',
-    type: 'UG',
-    duration: 4,
-    universityId: '1',
-    universityName: 'Punjab Technical University',
-    branches: 8,
-  },
-  {
-    id: '2',
-    name: 'Bachelor of Computer Applications',
-    type: 'UG',
-    duration: 3,
-    universityId: '2',
-    universityName: 'Delhi University',
-    branches: 5,
-  },
-  {
-    id: '3',
-    name: 'Master of Computer Applications',
-    type: 'PG',
-    duration: 2,
-    universityId: '3',
-    universityName: 'Mumbai University',
-    branches: 3,
-  },
-];
+import { PageLoader } from '@/components/ui/PageLoader';
+import { notespitaraApi } from '@/store/services/notespitara';
+import { GetAllProgramsResponse, GetAllUniversitiesResponse, Program, University } from '@/components/types/types';
 
 export default function ProgramsPage() {
   const [searchTerm, setSearchTerm] = useState('');
-  const [programs, setPrograms] = useState(mockPrograms);
   const [openDialog, setOpenDialog] = useState(false);
+  const [editingProgram, setEditingProgram] = useState<any>(null);
+
+  const { data: programsData, isLoading: isProgramsLoading, refetch: refetchPrograms } = notespitaraApi.useGetAllProgramsQuery({ page: 0, size: 20 });
+  const { data: universitiesData, isLoading: isUniversitiesLoading } = notespitaraApi.useGetAllUniversitiesQuery({ page: 0, size: 100 });
+
+  const typedPData = programsData as any;
+  const typedUData = universitiesData as any;
+
+  const programs: Program[] = Array.isArray(typedPData) ? typedPData : typedPData?.data?.programs?.content || typedPData?.data?.content || typedPData?.content || [];
+  const universities: University[] = Array.isArray(typedUData) ? typedUData : typedUData?.data?.universities?.content || typedUData?.data?.content || typedUData?.content || [];
 
   const filteredPrograms = programs.filter((prog) =>
     prog.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const handleAddSuccess = () => {
-    console.log('Program added successfully');
+    refetchPrograms();
   };
+
+  if (isProgramsLoading || isUniversitiesLoading) {
+    return (
+      <AdminLayout>
+        <PageLoader />
+      </AdminLayout>
+    );
+  }
 
   return (
     <AdminLayout>
@@ -66,7 +49,10 @@ export default function ProgramsPage() {
           description="Manage academic programs"
           searchPlaceholder="Search programs..."
           onSearch={setSearchTerm}
-          onAdd={() => setOpenDialog(true)}
+          onAdd={() => {
+            setEditingProgram(null);
+            setOpenDialog(true);
+          }}
           addButtonLabel="Add Program"
         />
 
@@ -87,7 +73,7 @@ export default function ProgramsPage() {
                 {filteredPrograms.map((prog) => (
                   <tr key={prog.id} className="border-b border-border hover:bg-muted/50 transition-colors">
                     <td className="px-6 py-3 text-sm text-foreground font-medium">{prog.name}</td>
-                    <td className="px-6 py-3 text-sm text-muted-foreground">{prog.universityName}</td>
+                    <td className="px-6 py-3 text-sm text-muted-foreground">{prog.university?.name || prog.universityName}</td>
                     <td className="px-6 py-3 text-sm">
                       <Badge variant="outline">
                         {prog.type === 'UG' ? 'Undergraduate' : prog.type === 'PG' ? 'Postgraduate' : 'Diploma'}
@@ -95,7 +81,7 @@ export default function ProgramsPage() {
                     </td>
                     <td className="px-6 py-3 text-sm text-muted-foreground">{prog.duration} years</td>
                     <td className="px-6 py-3 text-sm text-muted-foreground">
-                      <Badge>{prog.branches}</Badge>
+                      {/* Removed branches badge as it might not be implemented in GET API */}
                     </td>
                     <td className="px-6 py-3 text-right">
                       <div className="flex justify-end gap-2">
@@ -110,7 +96,17 @@ export default function ProgramsPage() {
                         <Button
                           size="sm"
                           variant="ghost"
-                          onClick={() => console.log('Edit', prog.id)}
+                          onClick={() => {
+                            setEditingProgram({
+                              id: prog.id,
+                              name: prog.name,
+                              type: prog.type,
+                              duration: prog.duration?.toString(),
+                              universityId: prog.university?.id || prog.universityId,
+                              description: '', // defaults to empty
+                            });
+                            setOpenDialog(true);
+                          }}
                           title="Edit program"
                         >
                           <Edit2 className="h-4 w-4" />
@@ -140,11 +136,14 @@ export default function ProgramsPage() {
         </div>
       </div>
 
-      <AddProgramForm
+      <ProgramForm
         open={openDialog}
-        onOpenChange={setOpenDialog}
-        universities={mockUniversities}
+        onOpenChange={(open) => {
+          setOpenDialog(open);
+          if (!open) setEditingProgram(null);
+        }}
         onSuccess={handleAddSuccess}
+        initialData={editingProgram}
       />
     </AdminLayout>
   );

@@ -3,62 +3,44 @@
 import { useState } from 'react';
 import { AdminLayout } from '@/components/admin/AdminLayout';
 import { AdminHeader } from '@/components/admin/AdminHeader';
-import { AddSemesterForm } from '@/components/admin/forms/AddSemesterForm';
+import { SemesterForm } from '@/components/admin/forms/SemesterForm';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Edit2, Trash2, Eye } from 'lucide-react';
-
-// Mock data
-const mockBranches = [
-  { id: '1', name: 'Computer Science Engineering' },
-  { id: '2', name: 'Electronics Engineering' },
-  { id: '3', name: 'Mechanical Engineering' },
-];
-
-const mockSemesters = [
-  {
-    id: '1',
-    number: 1,
-    branchId: '1',
-    branchName: 'Computer Science Engineering',
-    subjects: 6,
-  },
-  {
-    id: '2',
-    number: 2,
-    branchId: '1',
-    branchName: 'Computer Science Engineering',
-    subjects: 6,
-  },
-  {
-    id: '3',
-    number: 3,
-    branchId: '1',
-    branchName: 'Computer Science Engineering',
-    subjects: 5,
-  },
-  {
-    id: '4',
-    number: 1,
-    branchId: '2',
-    branchName: 'Electronics Engineering',
-    subjects: 6,
-  },
-];
+import { PageLoader } from '@/components/ui/PageLoader';
+import { notespitaraApi } from '@/store/services/notespitara';
+import { GetAllSemestersResponse, GetAllBranchesResponse, Semester, Branch } from '@/components/types/types';
 
 export default function SemestersPage() {
   const [searchTerm, setSearchTerm] = useState('');
-  const [semesters, setSemesters] = useState(mockSemesters);
   const [openDialog, setOpenDialog] = useState(false);
+  const [editingSemester, setEditingSemester] = useState<any>(null);
+
+  const { data: semestersData, isLoading: isSemestersLoading, refetch: refetchSemesters } = notespitaraApi.useGetAllSemestersQuery({ page: 0, size: 20 });
+  const { data: branchesData, isLoading: isBranchesLoading } = notespitaraApi.useGetAllBranchesQuery({ page: 0, size: 100 });
+
+  const typedSData = semestersData as any;
+  const typedBData = branchesData as any;
+
+  const semesters: Semester[] = Array.isArray(typedSData) ? typedSData : typedSData?.data?.semesters?.content || typedSData?.data?.content || typedSData?.content || [];
+  const branches: Branch[] = Array.isArray(typedBData) ? typedBData : typedBData?.data?.branches?.content || typedBData?.data?.content || typedBData?.content || [];
 
   const filteredSemesters = semesters.filter((sem) =>
-    sem.branchName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (sem.branch?.name || sem.branchName || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
     sem.number.toString().includes(searchTerm)
   );
 
   const handleAddSuccess = () => {
-    console.log('Semester added successfully');
+    refetchSemesters();
   };
+
+  if (isSemestersLoading || isBranchesLoading) {
+    return (
+      <AdminLayout>
+        <PageLoader />
+      </AdminLayout>
+    );
+  }
 
   return (
     <AdminLayout>
@@ -68,7 +50,10 @@ export default function SemestersPage() {
           description="Manage academic semesters"
           searchPlaceholder="Search semesters..."
           onSearch={setSearchTerm}
-          onAdd={() => setOpenDialog(true)}
+          onAdd={() => {
+            setEditingSemester(null);
+            setOpenDialog(true);
+          }}
           addButtonLabel="Add Semester"
         />
 
@@ -89,9 +74,9 @@ export default function SemestersPage() {
                     <td className="px-6 py-3 text-sm text-foreground font-medium">
                       <Badge variant="default">Sem {sem.number}</Badge>
                     </td>
-                    <td className="px-6 py-3 text-sm text-muted-foreground">{sem.branchName}</td>
+                    <td className="px-6 py-3 text-sm text-muted-foreground">{sem.branch?.name || sem.branchName}</td>
                     <td className="px-6 py-3 text-sm text-muted-foreground">
-                      <Badge>{sem.subjects}</Badge>
+                      {/* Removed subjects count as it may not be in GET API */}
                     </td>
                     <td className="px-6 py-3 text-right">
                       <div className="flex justify-end gap-2">
@@ -106,7 +91,14 @@ export default function SemestersPage() {
                         <Button
                           size="sm"
                           variant="ghost"
-                          onClick={() => console.log('Edit', sem.id)}
+                          onClick={() => {
+                            setEditingSemester({
+                              id: sem.id,
+                              number: sem.number,
+                              branchId: sem.branch?.id || sem.branchId,
+                            });
+                            setOpenDialog(true);
+                          }}
                           title="Edit semester"
                         >
                           <Edit2 className="h-4 w-4" />
@@ -136,11 +128,14 @@ export default function SemestersPage() {
         </div>
       </div>
 
-      <AddSemesterForm
+      <SemesterForm
         open={openDialog}
-        onOpenChange={setOpenDialog}
-        branches={mockBranches}
+        onOpenChange={(open) => {
+          setOpenDialog(open);
+          if (!open) setEditingSemester(null);
+        }}
         onSuccess={handleAddSuccess}
+        initialData={editingSemester}
       />
     </AdminLayout>
   );

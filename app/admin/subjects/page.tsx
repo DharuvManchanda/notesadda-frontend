@@ -3,61 +3,27 @@
 import { useState } from 'react';
 import { AdminLayout } from '@/components/admin/AdminLayout';
 import { AdminHeader } from '@/components/admin/AdminHeader';
-import { AddSubjectForm } from '@/components/admin/forms/AddSubjectForm';
+import { SubjectForm } from '@/components/admin/forms/SubjectForm';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Edit2, Trash2, Eye } from 'lucide-react';
-
-// Mock data
-const mockSemesters = [
-  { id: '1', name: 'CSE - Semester 1' },
-  { id: '2', name: 'CSE - Semester 2' },
-  { id: '3', name: 'CSE - Semester 3' },
-];
-
-const mockSubjects = [
-  {
-    id: '1',
-    name: 'Data Structures',
-    code: 'CS201',
-    credits: 4,
-    semesterId: '1',
-    semesterName: 'CSE - Semester 1',
-    notes: 45,
-  },
-  {
-    id: '2',
-    name: 'Database Management Systems',
-    code: 'CS202',
-    credits: 4,
-    semesterId: '1',
-    semesterName: 'CSE - Semester 1',
-    notes: 38,
-  },
-  {
-    id: '3',
-    name: 'Operating Systems',
-    code: 'CS301',
-    credits: 4,
-    semesterId: '2',
-    semesterName: 'CSE - Semester 2',
-    notes: 52,
-  },
-  {
-    id: '4',
-    name: 'Object Oriented Programming',
-    code: 'CS202',
-    credits: 3,
-    semesterId: '1',
-    semesterName: 'CSE - Semester 1',
-    notes: 28,
-  },
-];
+import { PageLoader } from '@/components/ui/PageLoader';
+import { notespitaraApi } from '@/store/services/notespitara';
+import { GetSubjectsResponse, GetAllSemestersResponse, Subject, Semester } from '@/components/types/types';
 
 export default function SubjectsPage() {
   const [searchTerm, setSearchTerm] = useState('');
-  const [subjects, setSubjects] = useState(mockSubjects);
   const [openDialog, setOpenDialog] = useState(false);
+  const [editingSubject, setEditingSubject] = useState<any>(null);
+
+  const { data: subjectsData, isLoading: isSubjectsLoading, refetch: refetchSubjects } = notespitaraApi.useGetSubjectsQuery({ page: 0, size: 20 });
+  const { data: semestersData, isLoading: isSemestersLoading } = notespitaraApi.useGetAllSemestersQuery({ page: 0, size: 100 });
+
+  const typedSubData = subjectsData as any;
+  const typedSemData = semestersData as any;
+
+  const subjects: Subject[] = Array.isArray(typedSubData) ? typedSubData : typedSubData?.data?.subjects?.content || typedSubData?.data?.content || typedSubData?.content || [];
+  const semesters: Semester[] = Array.isArray(typedSemData) ? typedSemData : typedSemData?.data?.semesters?.content || typedSemData?.data?.content || typedSemData?.content || [];
 
   const filteredSubjects = subjects.filter((subject) =>
     subject.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -65,8 +31,16 @@ export default function SubjectsPage() {
   );
 
   const handleAddSuccess = () => {
-    console.log('Subject added successfully');
+    refetchSubjects();
   };
+
+  if (isSubjectsLoading || isSemestersLoading) {
+    return (
+      <AdminLayout>
+        <PageLoader />
+      </AdminLayout>
+    );
+  }
 
   return (
     <AdminLayout>
@@ -76,7 +50,10 @@ export default function SubjectsPage() {
           description="Manage academic subjects"
           searchPlaceholder="Search subjects..."
           onSearch={setSearchTerm}
-          onAdd={() => setOpenDialog(true)}
+          onAdd={() => {
+            setEditingSubject(null);
+            setOpenDialog(true);
+          }}
           addButtonLabel="Add Subject"
         />
 
@@ -100,12 +77,12 @@ export default function SubjectsPage() {
                     <td className="px-6 py-3 text-sm text-muted-foreground">
                       <Badge variant="outline">{subject.code}</Badge>
                     </td>
-                    <td className="px-6 py-3 text-sm text-muted-foreground">{subject.semesterName}</td>
+                    <td className="px-6 py-3 text-sm text-muted-foreground">{subject.semester?.number ? `Semester ${subject.semester.number}` : subject.semesterName}</td>
                     <td className="px-6 py-3 text-sm text-muted-foreground">
                       <Badge>{subject.credits}</Badge>
                     </td>
                     <td className="px-6 py-3 text-sm text-muted-foreground">
-                      <Badge variant="secondary">{subject.notes}</Badge>
+                      {/* Removed notes badge if count is not returned directly */}
                     </td>
                     <td className="px-6 py-3 text-right">
                       <div className="flex justify-end gap-2">
@@ -120,7 +97,18 @@ export default function SubjectsPage() {
                         <Button
                           size="sm"
                           variant="ghost"
-                          onClick={() => console.log('Edit', subject.id)}
+                          onClick={() => {
+                            setEditingSubject({
+                              id: subject.id,
+                              name: subject.name,
+                              code: subject.code,
+                              credits: subject.credits?.toString(),
+                              semesterId: subject.semester?.id || subject.semesterId,
+                              description: '',
+                              syllabusUrl: subject.syllabusUrl || '',
+                            });
+                            setOpenDialog(true);
+                          }}
                           title="Edit subject"
                         >
                           <Edit2 className="h-4 w-4" />
@@ -150,11 +138,14 @@ export default function SubjectsPage() {
         </div>
       </div>
 
-      <AddSubjectForm
+      <SubjectForm
         open={openDialog}
-        onOpenChange={setOpenDialog}
-        semesters={mockSemesters}
+        onOpenChange={(open) => {
+          setOpenDialog(open);
+          if (!open) setEditingSubject(null);
+        }}
         onSuccess={handleAddSuccess}
+        initialData={editingSubject}
       />
     </AdminLayout>
   );

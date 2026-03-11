@@ -6,7 +6,6 @@ import { Footer } from '@/components/Footer';
 import { Container } from '@/components/shared/Container';
 import { Section } from '@/components/shared/Section';
 import { Breadcrumb } from '@/components/shared/Breadcrumb';
-import { universities } from '@/lib/mockData';
 import { UploadStepIndicator } from '@/components/upload/UploadStepIndicator';
 import { ErrorAlert } from '@/components/upload/ErrorAlert';
 import { AcademicSelectionStep } from '@/components/upload/AcademicSelectionStep';
@@ -38,11 +37,7 @@ export default function UploadPage() {
   const [file, setFile] = useState<File | null>(null);
   const [error, setError] = useState('');
 
-  const university = universities.find((u) => u.id === selectedUniversity);
-  const program = university?.programs.find((p) => p.id === selectedProgram);
-  const branch = program?.branches.find((b) => b.id === selectedBranch);
-  const semester = branch?.semesters.find((s) => s.number === parseInt(selectedSemester));
-  const subject = semester?.subjects.find((s) => s.id === selectedSubject);
+  // Remove mock data searches since we don't have static list anymore
 
   const validateStep = (step: number): boolean => {
     if (step === 1) {
@@ -97,11 +92,11 @@ export default function UploadPage() {
   };
 
   const reviewItems = [
-    { label: 'University', value: university?.name || 'N/A' },
-    { label: 'Program', value: program?.name || 'N/A' },
-    { label: 'Branch', value: branch?.name || 'N/A' },
-    { label: 'Semester', value: `Semester ${selectedSemester}` },
-    { label: 'Subject', value: subject?.name || 'N/A' },
+    { label: 'University ID', value: selectedUniversity || 'N/A' },
+    { label: 'Program ID', value: selectedProgram || 'N/A' },
+    { label: 'Branch ID', value: selectedBranch || 'N/A' },
+    { label: 'Semester ID', value: selectedSemester ? `Semester ID ${selectedSemester}` : 'N/A' },
+    { label: 'Subject ID', value: selectedSubject || 'N/A' },
     { label: 'Title', value: formData.title },
     { label: 'Description', value: formData.description },
     { label: 'File', value: file?.name || 'N/A' },
@@ -126,7 +121,6 @@ export default function UploadPage() {
 
               {currentStep === 1 && (
                 <AcademicSelectionStep
-                  universities={universities}
                   selectedUniversity={selectedUniversity}
                   selectedProgram={selectedProgram}
                   selectedBranch={selectedBranch}

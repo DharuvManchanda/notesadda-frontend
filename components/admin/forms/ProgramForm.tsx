@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -8,23 +8,47 @@ import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Loader2 } from 'lucide-react';
+import { notespitaraApi } from '@/store/services/notespitara';
+import { CascadingDropdowns } from '@/components/ui/CascadingDropdowns';
 
-interface AddProgramFormProps {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  universities: Array<{ id: string; name: string }>;
-  onSuccess?: () => void;
+import { ProgramCreateRequest } from '@/store/services/notespitara';
+
+interface ProgramFormData extends ProgramCreateRequest {
+  id?: string;
 }
 
-export function AddProgramForm({ open, onOpenChange, universities, onSuccess }: AddProgramFormProps) {
-  const [loading, setLoading] = useState(false);
+interface ProgramFormProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onSuccess?: () => void;
+  initialData?: ProgramFormData;
+}
+
+export function ProgramForm({ open, onOpenChange, onSuccess, initialData }: ProgramFormProps) {
+  const isEditMode = !!initialData;
+  const [createProgram, { isLoading: isCreating }] = notespitaraApi.useCreateProgramMutation();
+  const [updateProgram, { isLoading: isUpdating }] = notespitaraApi.useUpdateProgramMutation();
+  const loading = isCreating || isUpdating;
+
   const [formData, setFormData] = useState({
-    name: '',
-    description: '',
-    type: 'UG',
-    duration: '',
-    universityId: '',
+    name: initialData?.name || '',
+    description: initialData?.description || '',
+    type: initialData?.type || 'UG',
+    duration: initialData?.duration || '',
+    universityId: initialData?.universityId || '',
   });
+
+  useEffect(() => {
+    if (open) {
+      setFormData({
+        name: initialData?.name || '',
+        description: initialData?.description || '',
+        type: initialData?.type || 'UG',
+        duration: initialData?.duration || '',
+        universityId: initialData?.universityId || '',
+      });
+    }
+  }, [open, initialData]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -36,21 +60,27 @@ export function AddProgramForm({ open, onOpenChange, universities, onSuccess }: 
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
 
     try {
-      // Dummy API call
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      
-      console.log('Adding program:', formData);
+      const payload: ProgramCreateRequest = {
+        name: formData.name,
+        description: formData.description,
+        type: formData.type as any, // "UG" | "PG" | "DIPLOMA"
+        duration: Number(formData.duration),
+        universityId: formData.universityId,
+      };
+
+      if (isEditMode && initialData?.id) {
+        await updateProgram({ id: initialData.id, programCreateRequest: payload }).unwrap();
+      } else {
+        await createProgram({ programCreateRequest: payload }).unwrap();
+      }
       
       setFormData({ name: '', description: '', type: 'UG', duration: '', universityId: '' });
       onOpenChange(false);
       onSuccess?.();
     } catch (error) {
-      console.error('Error adding program:', error);
-    } finally {
-      setLoading(false);
+      console.error('Error saving program:', error);
     }
   };
 
@@ -58,26 +88,14 @@ export function AddProgramForm({ open, onOpenChange, universities, onSuccess }: 
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Add Program</DialogTitle>
+          <DialogTitle>{isEditMode ? 'Edit Program' : 'Add Program'}</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="universityId">University *</Label>
-            <Select value={formData.universityId} onValueChange={(value) => 
-              setFormData(prev => ({ ...prev, universityId: value }))
-            }>
-              <SelectTrigger>
-                <SelectValue placeholder="Select university" />
-              </SelectTrigger>
-              <SelectContent>
-                {universities.map((uni) => (
-                  <SelectItem key={uni.id} value={uni.id}>
-                    {uni.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+            <CascadingDropdowns
+              level="UNIVERSITY"
+              selectedUniversityId={formData.universityId}
+              onUniversityChange={(val) => setFormData(prev => ({ ...prev, universityId: val }))}
+            />
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
@@ -139,7 +157,7 @@ export function AddProgramForm({ open, onOpenChange, universities, onSuccess }: 
             </Button>
             <Button type="submit" disabled={loading}>
               {loading && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-              {loading ? 'Adding...' : 'Add Program'}
+              {loading ? 'Saving...' : (isEditMode ? 'Save Changes' : 'Add Program')}
             </Button>
           </div>
         </form>

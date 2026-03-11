@@ -3,57 +3,27 @@
 import { useState } from 'react';
 import { AdminLayout } from '@/components/admin/AdminLayout';
 import { AdminHeader } from '@/components/admin/AdminHeader';
-import { AddBranchForm } from '@/components/admin/forms/AddBranchForm';
+import { BranchForm } from '@/components/admin/forms/BranchForm';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Edit2, Trash2, Eye } from 'lucide-react';
-
-// Mock data
-const mockPrograms = [
-  { id: '1', name: 'Bachelor of Technology' },
-  { id: '2', name: 'Bachelor of Computer Applications' },
-  { id: '3', name: 'Master of Computer Applications' },
-];
-
-const mockBranches = [
-  {
-    id: '1',
-    name: 'Computer Science Engineering',
-    code: 'CSE',
-    programId: '1',
-    programName: 'Bachelor of Technology',
-    semesters: 8,
-  },
-  {
-    id: '2',
-    name: 'Electronics Engineering',
-    code: 'ECE',
-    programId: '1',
-    programName: 'Bachelor of Technology',
-    semesters: 8,
-  },
-  {
-    id: '3',
-    name: 'Mechanical Engineering',
-    code: 'ME',
-    programId: '1',
-    programName: 'Bachelor of Technology',
-    semesters: 8,
-  },
-  {
-    id: '4',
-    name: 'Computer Science',
-    code: 'CS',
-    programId: '2',
-    programName: 'Bachelor of Computer Applications',
-    semesters: 6,
-  },
-];
+import { PageLoader } from '@/components/ui/PageLoader';
+import { notespitaraApi } from '@/store/services/notespitara';
+import { GetAllBranchesResponse, GetAllProgramsResponse, Branch, Program } from '@/components/types/types';
 
 export default function BranchesPage() {
   const [searchTerm, setSearchTerm] = useState('');
-  const [branches, setBranches] = useState(mockBranches);
   const [openDialog, setOpenDialog] = useState(false);
+  const [editingBranch, setEditingBranch] = useState<any>(null);
+
+  const { data: branchesData, isLoading: isBranchesLoading, refetch: refetchBranches } = notespitaraApi.useGetAllBranchesQuery({ page: 0, size: 20 });
+  const { data: programsData, isLoading: isProgramsLoading } = notespitaraApi.useGetAllProgramsQuery({ page: 0, size: 100 });
+
+  const typedBData = branchesData as any;
+  const typedPData = programsData as any;
+
+  const branches: Branch[] = Array.isArray(typedBData) ? typedBData : typedBData?.data?.branches?.content || typedBData?.data?.content || typedBData?.content || [];
+  const programs: Program[] = Array.isArray(typedPData) ? typedPData : typedPData?.data?.programs?.content || typedPData?.data?.content || typedPData?.content || [];
 
   const filteredBranches = branches.filter((branch) =>
     branch.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -61,8 +31,16 @@ export default function BranchesPage() {
   );
 
   const handleAddSuccess = () => {
-    console.log('Branch added successfully');
+    refetchBranches();
   };
+
+  if (isBranchesLoading || isProgramsLoading) {
+    return (
+      <AdminLayout>
+        <PageLoader />
+      </AdminLayout>
+    );
+  }
 
   return (
     <AdminLayout>
@@ -72,7 +50,10 @@ export default function BranchesPage() {
           description="Manage academic branches"
           searchPlaceholder="Search branches..."
           onSearch={setSearchTerm}
-          onAdd={() => setOpenDialog(true)}
+          onAdd={() => {
+            setEditingBranch(null);
+            setOpenDialog(true);
+          }}
           addButtonLabel="Add Branch"
         />
 
@@ -95,9 +76,9 @@ export default function BranchesPage() {
                     <td className="px-6 py-3 text-sm text-muted-foreground">
                       <Badge variant="outline">{branch.code}</Badge>
                     </td>
-                    <td className="px-6 py-3 text-sm text-muted-foreground">{branch.programName}</td>
+                    <td className="px-6 py-3 text-sm text-muted-foreground">{branch.program?.name || branch.programName}</td>
                     <td className="px-6 py-3 text-sm text-muted-foreground">
-                      <Badge>{branch.semesters}</Badge>
+                      {/* Removed semesters badge if count is not returned directly */}
                     </td>
                     <td className="px-6 py-3 text-right">
                       <div className="flex justify-end gap-2">
@@ -112,7 +93,16 @@ export default function BranchesPage() {
                         <Button
                           size="sm"
                           variant="ghost"
-                          onClick={() => console.log('Edit', branch.id)}
+                          onClick={() => {
+                            setEditingBranch({
+                              id: branch.id,
+                              name: branch.name,
+                              code: branch.code,
+                              programId: branch.program?.id || branch.programId,
+                              description: '',
+                            });
+                            setOpenDialog(true);
+                          }}
                           title="Edit branch"
                         >
                           <Edit2 className="h-4 w-4" />
@@ -142,11 +132,14 @@ export default function BranchesPage() {
         </div>
       </div>
 
-      <AddBranchForm
+      <BranchForm
         open={openDialog}
-        onOpenChange={setOpenDialog}
-        programs={mockPrograms}
+        onOpenChange={(open) => {
+          setOpenDialog(open);
+          if (!open) setEditingBranch(null);
+        }}
         onSuccess={handleAddSuccess}
+        initialData={editingBranch}
       />
     </AdminLayout>
   );

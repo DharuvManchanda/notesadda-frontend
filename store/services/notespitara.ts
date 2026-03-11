@@ -667,7 +667,7 @@ export type UpdateUniversityApiResponse = /** status 200 OK */ object;
 export type UpdateUniversityApiArg = {
   id: string;
   body: {
-    request?: UniversityCreateRequest;
+    data: UniversityCreateRequest;
     logo?: Blob;
   };
 };
@@ -749,7 +749,7 @@ export type GetAllUniversitiesApiArg = {
 export type CreateUniversityApiResponse = /** status 200 OK */ object;
 export type CreateUniversityApiArg = {
   body: {
-    request?: UniversityCreateRequest;
+    data: UniversityCreateRequest;
     logo?: Blob;
   };
 };
@@ -917,8 +917,7 @@ export type UniversityCreateRequest = {
 export type SubjectCreateRequest = {
   name: string;
   code: string;
-  credits: number;
-  syllabusUrl?: string;
+  description?: string;
   semesterId: string;
 };
 export type SemesterCreateRequest = {
@@ -943,6 +942,7 @@ export type NotesCreateRequest = {
 export type BranchCreateRequest = {
   name: string;
   code: string;
+  description?: string;
   programId: string;
 };
 export type VerifyEmailOtpRequest = {

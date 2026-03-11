@@ -3,43 +3,22 @@
 import { useState } from 'react';
 import { AdminLayout } from '@/components/admin/AdminLayout';
 import { AdminHeader } from '@/components/admin/AdminHeader';
-import { AddUniversityForm } from '@/components/admin/forms/AddUniversityForm';
+import { UniversityForm } from '@/components/admin/forms/UniversityForm';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Edit2, Trash2, Eye } from 'lucide-react';
-
-// Mock data
-const mockUniversities = [
-  {
-    id: '1',
-    name: 'Punjab Technical University',
-    code: 'PTU',
-    city: 'Jalandhar',
-    state: 'Punjab',
-    programs: 12,
-  },
-  {
-    id: '2',
-    name: 'Delhi University',
-    code: 'DU',
-    city: 'New Delhi',
-    state: 'Delhi',
-    programs: 25,
-  },
-  {
-    id: '3',
-    name: 'Mumbai University',
-    code: 'MU',
-    city: 'Mumbai',
-    state: 'Maharashtra',
-    programs: 18,
-  },
-];
+import { PageLoader } from '@/components/ui/PageLoader';
+import { notespitaraApi } from '@/store/services/notespitara';
+import { GetAllUniversitiesResponse, University } from '@/components/types/types';
 
 export default function UniversitiesPage() {
   const [searchTerm, setSearchTerm] = useState('');
-  const [universities, setUniversities] = useState(mockUniversities);
   const [openDialog, setOpenDialog] = useState(false);
+  const [editingUniversity, setEditingUniversity] = useState<any>(null);
+
+  const { data, isLoading, refetch } = notespitaraApi.useGetAllUniversitiesQuery({ page: 0, size: 20 });
+  const typedData = data as any;
+  const universities: University[] = Array.isArray(typedData) ? typedData : typedData?.data?.universities?.content || typedData?.data?.content || typedData?.content || [];
 
   const filteredUniversities = universities.filter((uni) =>
     uni.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -47,9 +26,16 @@ export default function UniversitiesPage() {
   );
 
   const handleAddSuccess = () => {
-    // In a real app, you would refresh the list from API
-    console.log('University added successfully');
+    refetch();
   };
+
+  if (isLoading) {
+    return (
+      <AdminLayout>
+        <PageLoader />
+      </AdminLayout>
+    );
+  }
 
   return (
     <AdminLayout>
@@ -59,7 +45,10 @@ export default function UniversitiesPage() {
           description="Manage universities in the system"
           searchPlaceholder="Search universities..."
           onSearch={setSearchTerm}
-          onAdd={() => setOpenDialog(true)}
+          onAdd={() => {
+            setEditingUniversity(null);
+            setOpenDialog(true);
+          }}
           addButtonLabel="Add University"
         />
 
@@ -86,7 +75,7 @@ export default function UniversitiesPage() {
                       {uni.city}, {uni.state}
                     </td>
                     <td className="px-6 py-3 text-sm text-muted-foreground">
-                      <Badge>{uni.programs}</Badge>
+                      {/* Removing programs badge, it might not be in GET API */}
                     </td>
                     <td className="px-6 py-3 text-right">
                       <div className="flex justify-end gap-2">
@@ -101,7 +90,17 @@ export default function UniversitiesPage() {
                         <Button
                           size="sm"
                           variant="ghost"
-                          onClick={() => console.log('Edit', uni.id)}
+                          onClick={() => {
+                            setEditingUniversity({
+                              id: uni.id,
+                              name: uni.name,
+                              code: uni.code,
+                              description: '', // Mock data doesn't have description so default to empty
+                              city: uni.city,
+                              state: uni.state,
+                            });
+                            setOpenDialog(true);
+                          }}
                           title="Edit university"
                         >
                           <Edit2 className="h-4 w-4" />
@@ -131,7 +130,15 @@ export default function UniversitiesPage() {
         </div>
       </div>
 
-      <AddUniversityForm open={openDialog} onOpenChange={setOpenDialog} onSuccess={handleAddSuccess} />
+      <UniversityForm 
+        open={openDialog} 
+        onOpenChange={(open) => {
+          setOpenDialog(open);
+          if (!open) setEditingUniversity(null); // Clear editing state when closing
+        }} 
+        onSuccess={handleAddSuccess} 
+        initialData={editingUniversity}
+      />
     </AdminLayout>
   );
 }
