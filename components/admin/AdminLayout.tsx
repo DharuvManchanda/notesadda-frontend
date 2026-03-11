@@ -14,6 +14,8 @@ const navItems = [
   { label: 'Dashboard', href: '/admin', icon: LayoutDashboard },
   { label: 'Universities', href: '/admin/universities', icon: Building2 },
   { label: 'Programs', href: '/admin/programs', icon: Layers },
+  { label: 'Branches', href: '/admin/branches', icon: Building2 },
+  { label: 'Semesters', href: '/admin/semesters', icon: Layers },
   { label: 'Subjects', href: '/admin/subjects', icon: BookOpen },
   { label: 'Notes', href: '/admin/notes', icon: FileText },
   { label: 'Users', href: '/admin/users', icon: Users },

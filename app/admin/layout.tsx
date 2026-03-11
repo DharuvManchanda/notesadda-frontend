@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
 
 export const metadata: Metadata = {
   title: 'Admin Dashboard - NotesPitara',
@@ -10,5 +11,9 @@ export default function AdminLayout({
 }: {
   children: React.ReactNode;
 }) {
-  return <>{children}</>;
+  return (
+    <ProtectedRoute allowedRoles={['ROLE_UNIVERSITY_ADMIN', 'ROLE_SUPER_ADMIN']}>
+      {children}
+    </ProtectedRoute>
+  );
 }

@@ -63,6 +63,7 @@
         "tags": [
           "Universities"
         ],
+        "summary": "Update university — send JSON in 'data' part, optional logo file in 'logo' part",
         "operationId": "updateUniversity",
         "parameters": [
           {
@@ -81,14 +82,17 @@
               "schema": {
                 "type": "object",
                 "properties": {
-                  "request": {
+                  "data": {
                     "$ref": "#/components/schemas/UniversityCreateRequest"
                   },
                   "logo": {
                     "type": "string",
                     "format": "binary"
                   }
-                }
+                },
+                "required": [
+                  "data"
+                ]
               }
             }
           }
@@ -688,6 +692,7 @@
         "tags": [
           "Universities"
         ],
+        "summary": "Create university — send JSON in 'data' part, optional logo file in 'logo' part",
         "operationId": "createUniversity",
         "requestBody": {
           "content": {
@@ -695,14 +700,17 @@
               "schema": {
                 "type": "object",
                 "properties": {
-                  "request": {
+                  "data": {
                     "$ref": "#/components/schemas/UniversityCreateRequest"
                   },
                   "logo": {
                     "type": "string",
                     "format": "binary"
                   }
-                }
+                },
+                "required": [
+                  "data"
+                ]
               }
             }
           }
@@ -1976,12 +1984,10 @@
           "code": {
             "type": "string"
           },
-          "credits": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "syllabusUrl": {
-            "type": "string"
+          "description": {
+            "type": "string",
+            "maxLength": 1000,
+            "minLength": 0
           },
           "semesterId": {
             "type": "string",
@@ -1990,7 +1996,6 @@
         },
         "required": [
           "code",
-          "credits",
           "name",
           "semesterId"
         ]
@@ -2088,6 +2093,11 @@
           "code": {
             "type": "string",
             "maxLength": 20,
+            "minLength": 0
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 1000,
             "minLength": 0
           },
           "programId": {
