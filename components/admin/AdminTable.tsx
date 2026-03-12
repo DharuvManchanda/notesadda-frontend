@@ -1,5 +1,5 @@
 import { Button } from '@/components/ui/button';
-import { Trash2, Edit, Eye } from 'lucide-react';
+import { Trash2, Edit, Eye, CheckCircle, XCircle } from 'lucide-react';
 
 interface Column {
   key: string;
@@ -12,10 +12,24 @@ interface AdminTableProps {
   data: any[];
   onEdit?: (id: string) => void;
   onDelete?: (id: string) => void;
-  onView?: (id: string) => void;
+  onView?: (url: string) => void;
+  onApprove?: (id: string) => void;
+  onReject?: (id: string) => void;
+  isApproveDisabled?: (row: any) => boolean;
+  isRejectDisabled?: (row: any) => boolean;
 }
 
-export function AdminTable({ columns, data, onEdit, onDelete, onView }: AdminTableProps) {
+export function AdminTable({ 
+  columns, 
+  data, 
+  onEdit, 
+  onDelete, 
+  onView, 
+  onApprove, 
+  onReject,
+  isApproveDisabled,
+  isRejectDisabled
+}: AdminTableProps) {
   return (
     <div className="overflow-x-auto">
       <table className="w-full text-sm">
@@ -43,14 +57,39 @@ export function AdminTable({ columns, data, onEdit, onDelete, onView }: AdminTab
               ))}
               <td className="px-6 py-3">
                 <div className="flex gap-2">
-                  {onView && (
+   {onView && row.viewUrl && (
                     <Button
                       size="sm"
                       variant="outline"
-                      onClick={() => onView(row.id)}
+                      onClick={() => onView(row.viewUrl)}
                       title="View"
+                      className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
                     >
                       <Eye className="h-4 w-4" />
+                    </Button>
+                  )}
+                  {onApprove && (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => onApprove(row.id)}
+                      title="Approve"
+                      disabled={isApproveDisabled?.(row)}
+                      className="text-green-600 hover:text-green-700 hover:bg-green-50 disabled:opacity-50"
+                    >
+                      <CheckCircle className="h-4 w-4" />
+                    </Button>
+                  )}
+                  {onReject && (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => onReject(row.id)}
+                      title="Reject"
+                      disabled={isRejectDisabled?.(row)}
+                      className="text-orange-600 hover:text-orange-700 hover:bg-orange-50 disabled:opacity-50"
+                    >
+                      <XCircle className="h-4 w-4" />
                     </Button>
                   )}
                   {onEdit && (

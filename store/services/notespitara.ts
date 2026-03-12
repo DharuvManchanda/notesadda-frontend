@@ -120,7 +120,7 @@ const injectedRtkApi = api
         query: (queryArg) => ({
           url: `/api/notes/${encodeURIComponent(String(queryArg.id))}`,
           method: "PUT",
-          body: queryArg.notesCreateRequest,
+          body: queryArg.notesUpdateRequest,
         }),
         invalidatesTags: ["Notes"],
       }),
@@ -144,15 +144,16 @@ const injectedRtkApi = api
         }),
         invalidatesTags: ["Notes"],
       }),
-      approveNotes: build.mutation<ApproveNotesApiResponse, ApproveNotesApiArg>(
-        {
-          query: (queryArg) => ({
-            url: `/api/notes/${encodeURIComponent(String(queryArg.id))}/approve`,
-            method: "PUT",
-          }),
-          invalidatesTags: ["Notes"],
-        },
-      ),
+      approveNotesFromAdminReview: build.mutation<
+        ApproveNotesFromAdminReviewApiResponse,
+        ApproveNotesFromAdminReviewApiArg
+      >({
+        query: (queryArg) => ({
+          url: `/api/notes/${encodeURIComponent(String(queryArg.id))}/admin/approve`,
+          method: "PUT",
+        }),
+        invalidatesTags: ["Notes"],
+      }),
       getBranchById: build.query<GetBranchByIdApiResponse, GetBranchByIdApiArg>(
         {
           query: (queryArg) => ({
@@ -553,6 +554,15 @@ const injectedRtkApi = api
         }),
         providesTags: ["Notes"],
       }),
+      getAdminViewLink: build.query<
+        GetAdminViewLinkApiResponse,
+        GetAdminViewLinkApiArg
+      >({
+        query: (queryArg) => ({
+          url: `/api/notes/${encodeURIComponent(String(queryArg.id))}/admin/view`,
+        }),
+        providesTags: ["Notes"],
+      }),
       getNotesBySlug: build.query<
         GetNotesBySlugApiResponse,
         GetNotesBySlugApiArg
@@ -573,6 +583,69 @@ const injectedRtkApi = api
             query:
               queryArg.query != null
                 ? encodeURIComponent(String(queryArg.query))
+                : undefined,
+            page:
+              queryArg.page != null
+                ? encodeURIComponent(String(queryArg.page))
+                : undefined,
+            size:
+              queryArg.size != null
+                ? encodeURIComponent(String(queryArg.size))
+                : undefined,
+          },
+        }),
+        providesTags: ["Notes"],
+      }),
+      getMyNotes: build.query<GetMyNotesApiResponse, GetMyNotesApiArg>({
+        query: (queryArg) => ({
+          url: `/api/notes/me`,
+          params: {
+            q:
+              queryArg.q != null
+                ? encodeURIComponent(String(queryArg.q))
+                : undefined,
+            query:
+              queryArg.query != null
+                ? encodeURIComponent(String(queryArg.query))
+                : undefined,
+            isApproved:
+              queryArg.isApproved != null
+                ? encodeURIComponent(String(queryArg.isApproved))
+                : undefined,
+            reject:
+              queryArg.reject != null
+                ? encodeURIComponent(String(queryArg.reject))
+                : undefined,
+            approved:
+              queryArg.approved != null
+                ? encodeURIComponent(String(queryArg.approved))
+                : undefined,
+            page:
+              queryArg.page != null
+                ? encodeURIComponent(String(queryArg.page))
+                : undefined,
+            size:
+              queryArg.size != null
+                ? encodeURIComponent(String(queryArg.size))
+                : undefined,
+          },
+        }),
+        providesTags: ["Notes"],
+      }),
+      getAllNotesForAdmin: build.query<
+        GetAllNotesForAdminApiResponse,
+        GetAllNotesForAdminApiArg
+      >({
+        query: (queryArg) => ({
+          url: `/api/notes/all-notes`,
+          params: {
+            isApproved:
+              queryArg.isApproved != null
+                ? encodeURIComponent(String(queryArg.isApproved))
+                : undefined,
+            reject:
+              queryArg.reject != null
+                ? encodeURIComponent(String(queryArg.reject))
                 : undefined,
             page:
               queryArg.page != null
@@ -713,7 +786,7 @@ export type DeleteProgramApiArg = {
 export type UpdateNotesApiResponse = /** status 200 OK */ object;
 export type UpdateNotesApiArg = {
   id: string;
-  notesCreateRequest: NotesCreateRequest;
+  notesUpdateRequest: NotesUpdateRequest;
 };
 export type DeleteNotesApiResponse = /** status 200 OK */ object;
 export type DeleteNotesApiArg = {
@@ -724,8 +797,9 @@ export type RejectNotesApiArg = {
   id: string;
   rejectionNote?: string;
 };
-export type ApproveNotesApiResponse = /** status 200 OK */ object;
-export type ApproveNotesApiArg = {
+export type ApproveNotesFromAdminReviewApiResponse =
+  /** status 200 OK */ object;
+export type ApproveNotesFromAdminReviewApiArg = {
   id: string;
 };
 export type GetBranchByIdApiResponse = /** status 200 OK */ object;
@@ -871,6 +945,10 @@ export type GetDownloadLinkApiResponse = /** status 200 OK */ object;
 export type GetDownloadLinkApiArg = {
   id: string;
 };
+export type GetAdminViewLinkApiResponse = /** status 200 OK */ object;
+export type GetAdminViewLinkApiArg = {
+  id: string;
+};
 export type GetNotesBySlugApiResponse = /** status 200 OK */ object;
 export type GetNotesBySlugApiArg = {
   slug: string;
@@ -879,6 +957,23 @@ export type SearchNotesApiResponse = /** status 200 OK */ object;
 export type SearchNotesApiArg = {
   q?: string;
   query?: string;
+  page?: number;
+  size?: number;
+};
+export type GetMyNotesApiResponse = /** status 200 OK */ object;
+export type GetMyNotesApiArg = {
+  q?: string;
+  query?: string;
+  isApproved?: boolean;
+  reject?: boolean;
+  approved?: boolean;
+  page?: number;
+  size?: number;
+};
+export type GetAllNotesForAdminApiResponse = /** status 200 OK */ object;
+export type GetAllNotesForAdminApiArg = {
+  isApproved?: boolean;
+  reject?: boolean;
   page?: number;
   size?: number;
 };
@@ -931,13 +1026,9 @@ export type ProgramCreateRequest = {
   duration: number;
   universityId: string;
 };
-export type NotesCreateRequest = {
+export type NotesUpdateRequest = {
   title: string;
   description?: string;
-  fileUrl: string;
-  fileKey: string;
-  fileType: string;
-  subjectId: string;
 };
 export type BranchCreateRequest = {
   name: string;

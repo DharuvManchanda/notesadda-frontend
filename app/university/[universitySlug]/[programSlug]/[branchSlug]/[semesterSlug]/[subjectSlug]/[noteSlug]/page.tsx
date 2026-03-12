@@ -1,15 +1,21 @@
+'use client';
+
+import { use } from 'react';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
 import { Container } from '@/components/shared/Container';
 import { Section } from '@/components/shared/Section';
 import { Breadcrumb } from '@/components/shared/Breadcrumb';
 import { NoteCard } from '@/components/cards/NoteCard';
-import { getNoteBySlug, getUniversityBySlug, getProgramBySlug, getBranchBySlug, getNoteById, universities } from '@/lib/mockData';
 import { notFound } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Download, Bookmark, Share2, Star, User, Calendar, FileText } from 'lucide-react';
 import { formatDistanceToNow, formatDate } from 'date-fns';
+import { notespitaraApi } from '@/store/services/notespitara';
+import { PageLoader } from '@/components/ui/PageLoader';
+import { toast } from 'sonner';
+import { formatSlug } from '@/lib/utils';
 
 interface NoteSEORouteProps {
   params: Promise<{
@@ -22,58 +28,56 @@ interface NoteSEORouteProps {
   }>;
 }
 
-export async function generateStaticParams() {
-  // Return empty array to avoid generating thousands of static pages at build time.
-  // Pages will be rendered on-demand (SSR) when accessed.
-  return [];
-}
+export default function NoteSEOPage({ params }: NoteSEORouteProps) {
+  const { universitySlug, programSlug, branchSlug, semesterSlug, subjectSlug, noteSlug } = use(params);
 
-export async function generateMetadata({ params }: NoteSEORouteProps) {
-  const { universitySlug, programSlug, branchSlug, semesterSlug, subjectSlug, noteSlug } = await params;
-  const university = getUniversityBySlug(universitySlug);
-  const program = university ? getProgramBySlug(university, programSlug) : null;
-  const branch = program ? getBranchBySlug(program, branchSlug) : null;
-  const semesterNumber = parseInt(semesterSlug.replace('semester-', ''), 10);
-  const semester = branch?.semesters.find((s) => s.number === semesterNumber);
-  const subject = semester?.subjects.find((s) => s.slug === subjectSlug);
-  const note = subject ? getNoteBySlug(subject, noteSlug) : null;
+  const [triggerDownload, { isFetching: isDownloading }] = notespitaraApi.useLazyGetDownloadLinkQuery();
 
-  if (!note) {
-    return { title: 'Note Not Found' };
+  // Parse semester (e.g. "semester-1" -> "1")
+  const semesterStr = semesterSlug.replace('semester-', '');
+
+
+  const { data: subjectResponse, isLoading: isSubjLoading } = notespitaraApi.useGetSubjectBySlugQuery({ slug: subjectSlug });
+  const subject = (subjectResponse as any)?.data;
+
+  const { data: noteResponse, isLoading: isNoteLoading } = notespitaraApi.useGetNotesBySlugQuery({ slug: noteSlug });
+  const note = (noteResponse as any)?.data;
+
+  const { data: relatedResponse } = notespitaraApi.useGetNotesBySubjectQuery(
+    { id: subject?.id || '', page: 0, size: 4 },
+    { skip: !subject?.id }
+  );
+
+  if (isSubjLoading || isNoteLoading) {
+    return <PageLoader />;
   }
 
-  return {
-    title: `${note.title} - ${subject?.name} - NotesPitara`,
-    description: `Downloaded by ${note.downloads} students. Uploaded by ${note.uploadedBy.name}. Rating: ${note.rating}/5`,
-    alternates: {
-      canonical: `/note/${note.id}`,
-    },
+  if (!subject || !note) {
+    return notFound();
+  }
+
+  const handleDownload = async () => {
+    try {
+      const data: any = await triggerDownload({ id: note.id }).unwrap();
+      if (data?.status && data?.data?.downloadUrl) {
+        window.open(data.data.downloadUrl, '_blank');
+      } else {
+        toast.error((data as any)?.message || 'Failed to generate download link');
+      }
+    } catch (error: any) {
+      console.error('Download error:', error);
+      toast.error(error?.data?.message || 'An error occurred while trying to download the note');
+    }
   };
-}
 
-export default async function NoteSEOPage({ params }: NoteSEORouteProps) {
-  const { universitySlug, programSlug, branchSlug, semesterSlug, subjectSlug, noteSlug } = await params;
-  const university = getUniversityBySlug(universitySlug);
-  const program = university ? getProgramBySlug(university, programSlug) : null;
-  const branch = program ? getBranchBySlug(program, branchSlug) : null;
-  const semesterNumber = parseInt(semesterSlug.replace('semester-', ''), 10);
-  const semester = branch?.semesters.find((s) => s.number === semesterNumber);
-  const subject = semester?.subjects.find((s) => s.slug === subjectSlug);
-  const note = subject ? getNoteBySlug(subject, noteSlug) : null;
-
-  if (!note) {
-    notFound();
-  }
-
-  // Get related notes from the same subject
-  const relatedNotes = subject?.notes.filter((n) => n.id !== note.id).slice(0, 3) || [];
+  const relatedNotes = (relatedResponse as any)?.data?.notes?.content?.filter((n: any) => n.id !== note.id).slice(0, 3) || [];
 
   const breadcrumbItems = [
     { label: 'Home', href: '/' },
-    { label: university?.name || 'University', href: `/university/${universitySlug}` },
-    { label: program?.name || 'Program', href: `/university/${universitySlug}/${programSlug}` },
-    { label: branch?.name || 'Branch', href: `/university/${universitySlug}/${programSlug}/${branchSlug}` },
-    { label: `Semester ${semester?.number}`, href: `/university/${universitySlug}/${programSlug}/${branchSlug}/${semesterSlug}` },
+    { label: formatSlug(universitySlug), href: `/university/${universitySlug}` },
+    { label: formatSlug(programSlug), href: `/university/${universitySlug}/${programSlug}` },
+    { label: formatSlug(branchSlug), href: `/university/${universitySlug}/${programSlug}/${branchSlug}` },
+    { label: `Semester ${semesterStr}`, href: `/university/${universitySlug}/${programSlug}/${branchSlug}/${semesterSlug}` },
     { label: subject?.name || 'Subject', href: `/university/${universitySlug}/${programSlug}/${branchSlug}/${semesterSlug}/${subjectSlug}` },
     { label: note.title },
   ];
@@ -98,33 +102,33 @@ export default async function NoteSEOPage({ params }: NoteSEORouteProps) {
                         <p className="text-lg text-muted-foreground">{subject?.name}</p>
                       </div>
                       <Badge variant="secondary" className="whitespace-nowrap">
-                        {note.fileType.toUpperCase()}
+                        {note.fileType?.toUpperCase() || 'PDF'}
                       </Badge>
                     </div>
                   </div>
 
                   {/* Meta Information */}
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 p-4 bg-muted/50 rounded-lg">
+                  {/* <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 p-4 bg-muted/50 rounded-lg">
                     <div>
                       <p className="text-sm text-muted-foreground mb-1">Downloads</p>
-                      <p className="text-2xl font-bold">{note.downloads}</p>
+                      <p className="text-2xl font-bold">{note.downloadsCount || 0}</p>
                     </div>
                     <div>
                       <p className="text-sm text-muted-foreground mb-1">Rating</p>
                       <div className="flex items-center gap-1">
-                        <span className="text-2xl font-bold">{note.rating}</span>
+                        <span className="text-2xl font-bold">{note.averageRating || 0}</span>
                         <Star className="h-5 w-5 fill-yellow-400 text-yellow-400" />
                       </div>
                     </div>
                     <div>
                       <p className="text-sm text-muted-foreground mb-1">File Size</p>
-                      <p className="text-2xl font-bold">{note.fileSize}</p>
+                      <p className="text-2xl font-bold">{note.fileSize || 'N/A'}</p>
                     </div>
                     <div>
                       <p className="text-sm text-muted-foreground mb-1">Uploaded</p>
-                      <p className="text-sm font-medium">{formatDistanceToNow(note.uploadedAt, { addSuffix: true })}</p>
+                      <p className="text-sm font-medium">{note.createdAt ? formatDistanceToNow(new Date(note.createdAt), { addSuffix: true }) : 'Recently'}</p>
                     </div>
-                  </div>
+                  </div> */}
 
                   {/* Description */}
                   <div className="prose max-w-none">
@@ -140,13 +144,13 @@ export default async function NoteSEOPage({ params }: NoteSEORouteProps) {
                         <User className="h-8 w-8 text-primary" />
                       </div>
                       <div className="flex-1">
-                        <h4 className="font-bold text-lg">{note.uploadedBy.name}</h4>
-                        <p className="text-sm text-muted-foreground mb-2">{note.uploadedBy.email}</p>
+                        <h4 className="font-bold text-lg">{note.uploaderName || note.user?.name || note.uploadedBy?.name || 'Unknown'}</h4>
+                        <p className="text-sm text-muted-foreground mb-2">{note.uploaderEmail || note.user?.email || note.uploadedBy?.email}</p>
                         <p className="text-sm">
-                          <span className="font-semibold">{note.uploadedBy.uploadedNotesCount}</span> notes uploaded
+                          <span className="font-semibold">{note.uploaderTotalNotes || note.uploadedBy?.uploadedNotesCount || 0}</span> notes uploaded
                         </p>
                         <p className="text-xs text-muted-foreground mt-2">
-                          Uploaded {formatDate(note.uploadedAt, 'PPP')}
+                          Uploaded {note.createdAt ? formatDate(new Date(note.createdAt), 'PPP') : 'Unknown Form'}
                         </p>
                       </div>
                     </div>
@@ -154,18 +158,23 @@ export default async function NoteSEOPage({ params }: NoteSEORouteProps) {
 
                   {/* Action Buttons */}
                   <div className="flex gap-3 flex-wrap">
-                    <Button size="lg" className="gap-2">
+                    <Button 
+                      size="lg" 
+                      className="gap-2" 
+                      onClick={handleDownload}
+                      disabled={isDownloading}
+                    >
                       <Download className="h-4 w-4" />
-                      Download Note
+                      {isDownloading ? 'Generating Link...' : 'Download Note'}
                     </Button>
-                    <Button size="lg" variant="outline" className="gap-2">
+                    {/* <Button size="lg" variant="outline" className="gap-2">
                       <Bookmark className="h-4 w-4" />
                       Save
                     </Button>
                     <Button size="lg" variant="outline" className="gap-2">
                       <Share2 className="h-4 w-4" />
                       Share
-                    </Button>
+                    </Button> */}
                   </div>
                 </article>
               </div>
@@ -179,11 +188,11 @@ export default async function NoteSEOPage({ params }: NoteSEORouteProps) {
                   </div>
                   <div>
                     <p className="text-sm text-muted-foreground mb-1">File Type</p>
-                    <p className="font-semibold">{note.fileType.toUpperCase()}</p>
+                    <p className="font-semibold">{note.fileType?.toUpperCase() || 'PDF'}</p>
                   </div>
                   <div>
                     <p className="text-sm text-muted-foreground mb-1">Size</p>
-                    <p className="font-semibold">{note.fileSize}</p>
+                    <p className="font-semibold">{note.fileSize || 'N/A'}</p>
                   </div>
                 </div>
 
@@ -192,14 +201,14 @@ export default async function NoteSEOPage({ params }: NoteSEORouteProps) {
                   <div className="space-y-4">
                     <h3 className="text-lg font-bold">Related Notes</h3>
                     <div className="space-y-3">
-                      {relatedNotes.map((relatedNote) => (
+                      {relatedNotes.map((relatedNote: any) => (
                         <NoteCard
                           key={relatedNote.id}
                           note={relatedNote}
                           universitySlug={universitySlug}
                           programSlug={programSlug}
                           branchSlug={branchSlug}
-                          semesterNumber={semester?.number || 1}
+                          semesterNumber={semesterStr}
                           subjectSlug={subjectSlug}
                         />
                       ))}

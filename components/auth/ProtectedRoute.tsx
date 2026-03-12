@@ -11,11 +11,13 @@ interface ProtectedRouteProps {
 }
 
 export function ProtectedRoute({ children, allowedRoles }: ProtectedRouteProps) {
-  const { isAuthenticated, user } = useAuth();
+  const { isAuthenticated, user, isAuthLoading } = useAuth();
   const router = useRouter();
   const [isReady, setIsReady] = useState(false);
 
   useEffect(() => {
+    if (isAuthLoading) return;
+
     // Basic authentication check
     if (!isAuthenticated) {
       router.push('/auth/signin');
@@ -36,10 +38,10 @@ export function ProtectedRoute({ children, allowedRoles }: ProtectedRouteProps) 
 
     // Only set ready if authorized
     setIsReady(true);
-  }, [isAuthenticated, user, allowedRoles, router]);
+  }, [isAuthenticated, user, allowedRoles, router, isAuthLoading]);
 
   // Optionally render a loading spinner or null while checking
-  if (!isReady) {
+  if (isAuthLoading || !isReady) {
     return <PageLoader />;
   }
 

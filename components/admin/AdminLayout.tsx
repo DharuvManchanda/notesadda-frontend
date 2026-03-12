@@ -4,6 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { LayoutDashboard, Building2, Layers, BookOpen, FileText, Users, LogOut, Menu, X } from 'lucide-react';
+import { useAuth } from '@/components/auth/AuthContext';
 
 interface AdminLayoutProps {
   children: React.ReactNode;
@@ -23,6 +24,7 @@ const navItems = [
 
 export function AdminLayout({ children, adminName = 'Admin' }: AdminLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const { logout, user } = useAuth();
 
   return (
     <div className="flex h-screen bg-background">
@@ -78,8 +80,8 @@ export function AdminLayout({ children, adminName = 'Admin' }: AdminLayoutProps)
         <header className="bg-card border-b border-border px-6 py-4 flex items-center justify-between">
           <h1 className="text-2xl font-bold">Admin Dashboard</h1>
           <div className="flex items-center gap-4">
-            <span className="text-sm text-muted-foreground">{adminName}</span>
-            <Button variant="outline" size="sm" className="gap-2">
+            <span className="text-sm text-muted-foreground">{(user as any)?.name || adminName}</span>
+            <Button variant="outline" size="sm" className="gap-2" onClick={logout}>
               <LogOut className="h-4 w-4" />
               Logout
             </Button>

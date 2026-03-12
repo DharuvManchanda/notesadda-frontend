@@ -1,10 +1,9 @@
 import Link from 'next/link';
-import { Semester } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { BookOpen, FileText } from 'lucide-react';
 
 interface SemesterCardProps {
-  semester: Semester;
+  semester: any;
   universitySlug: string;
   programSlug: string;
   branchSlug: string;
@@ -25,7 +24,8 @@ export function SemesterCard({ semester, universitySlug, programSlug, branchSlug
         </h3>
 
         <p className="text-sm text-muted-foreground mb-4">
-          {semester.totalSubjects} Subjects • {semester.totalNotes} Notes
+          {semester.subjectsCountTotal || 0} Subjects 
+          {/* • {semester.totalNotes} Notes */}
         </p>
 
         <Button variant="outline" size="sm" className="w-full">

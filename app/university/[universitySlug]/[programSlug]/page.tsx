@@ -1,3 +1,6 @@
+'use client';
+
+import { use } from 'react';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
 import { Container } from '@/components/shared/Container';
@@ -5,9 +8,11 @@ import { Section } from '@/components/shared/Section';
 import { PageHeader } from '@/components/shared/PageHeader';
 import { Breadcrumb } from '@/components/shared/Breadcrumb';
 import { BranchCard } from '@/components/cards/BranchCard';
-import { getUniversityBySlug, getProgramBySlug, universities } from '@/lib/mockData';
 import { notFound } from 'next/navigation';
 import { Clock, BookMarked } from 'lucide-react';
+import { notespitaraApi } from '@/store/services/notespitara';
+import { PageLoader } from '@/components/ui/PageLoader';
+import { formatSlug } from '@/lib/utils';
 
 interface ProgramPageProps {
   params: Promise<{
@@ -16,47 +21,27 @@ interface ProgramPageProps {
   }>;
 }
 
-export async function generateStaticParams() {
-  const params: Array<{ universitySlug: string; programSlug: string }> = [];
-  universities.forEach((uni) => {
-    uni.programs.forEach((prog) => {
-      params.push({
-        universitySlug: uni.slug,
-        programSlug: prog.slug,
-      });
-    });
+export default function ProgramPage({ params }: ProgramPageProps) {
+  // Unwrap params
+  const { universitySlug, programSlug } = use(params);
+
+  const { data: progResponse, isLoading: isProgLoading } = notespitaraApi.useGetProgramBySlugQuery({
+    slug: programSlug,
   });
-  return params;
-}
+  const program = (progResponse as any)?.data;
 
-export async function generateMetadata({ params }: ProgramPageProps) {
-  const { universitySlug, programSlug } = await params;
-  const university = getUniversityBySlug(universitySlug);
-  const program = university ? getProgramBySlug(university, programSlug) : null;
+  // 3. Fetch Branches for that program
+  const { data: branchData, isLoading: isBranchLoading } = notespitaraApi.useGetBranchesByProgramQuery(
+    {
+      id: program?.id || '',
+      page: 0,
+      size: 50,
+    },
+    { skip: !program?.id }
+  );
 
-  if (!program) {
-    return { title: 'Program Not Found' };
-  }
-
-  return {
-    title: `${program.name} - ${university?.name} - NotesPitara`,
-    description: `${program.description} Explore branches and notes for ${program.name} at ${university?.name}.`,
-  };
-}
-
-export default async function ProgramPage({ params }: ProgramPageProps) {
-  const { universitySlug, programSlug } = await params;
-  const university = getUniversityBySlug(universitySlug);
-
-  if (!university) {
-    notFound();
-  }
-
-  const program = getProgramBySlug(university, programSlug);
-
-  if (!program) {
-    notFound();
-  }
+  if (isProgLoading) return <PageLoader />;
+  if (!program) return notFound();
 
   return (
     <>
@@ -67,7 +52,7 @@ export default async function ProgramPage({ params }: ProgramPageProps) {
             <Breadcrumb
               items={[
                 { label: 'Explore', href: '/explore' },
-                { label: university.name, href: `/university/${university.slug}` },
+                { label: formatSlug(universitySlug), href: `/university/${universitySlug}` },
                 { label: program.name },
               ]}
             />
@@ -82,25 +67,25 @@ export default async function ProgramPage({ params }: ProgramPageProps) {
                 <div className="flex items-center gap-2">
                   <Clock className="h-4 w-4 text-primary" />
                   <div>
-                    <p className="text-muted-foreground">Duration</p>
-                    <p className="font-semibold">{program.duration}</p>
+                    <p className="text-muted-foreground">Type</p>
+                    <p className="font-semibold">{program.type}</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
                   <BookMarked className="h-4 w-4 text-primary" />
                   <div>
                     <p className="text-muted-foreground">Branches</p>
-                    <p className="font-semibold">{program.totalBranches}</p>
+                    <p className="font-semibold">{program.branchesCountTotal || 0}</p>
                   </div>
                 </div>
                 <div>
                   <p className="text-muted-foreground">University</p>
-                  <p className="font-semibold">{university.name}</p>
+                  <p className="font-semibold">{formatSlug(universitySlug)}</p>
                 </div>
-                <div>
+                {/* <div>
                   <p className="text-muted-foreground">Total Notes</p>
                   <p className="text-2xl font-bold text-accent">{program.totalNotes.toLocaleString()}</p>
-                </div>
+                </div> */}
               </div>
             </div>
           </Container>
@@ -110,16 +95,24 @@ export default async function ProgramPage({ params }: ProgramPageProps) {
           <Container>
             <h2 className="text-3xl md:text-4xl font-bold mb-8">Specializations</h2>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {program.branches.map((branch) => (
-                <BranchCard
-                  key={branch.id}
-                  branch={branch}
-                  universitySlug={university.slug}
-                  programSlug={program.slug}
-                />
-              ))}
-            </div>
+            {isBranchLoading ? (
+              <div className="flex justify-center py-8"><PageLoader /></div>
+            ) : (branchData as any)?.data?.branches?.content?.length ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {(branchData as any).data.branches.content.map((branch: any) => (
+                  <BranchCard
+                    key={branch.id}
+                    branch={branch}
+                    universitySlug={universitySlug}
+                    programSlug={program.slug}
+                  />
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-8 text-muted-foreground border rounded-lg bg-card">
+                No branches found for this program.
+              </div>
+            )}
           </Container>
         </Section>
       </main>

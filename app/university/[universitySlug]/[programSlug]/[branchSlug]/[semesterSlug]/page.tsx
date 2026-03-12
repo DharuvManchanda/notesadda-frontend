@@ -1,3 +1,6 @@
+'use client';
+
+import { use, useMemo } from 'react';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
 import { Container } from '@/components/shared/Container';
@@ -7,9 +10,11 @@ import { Breadcrumb } from '@/components/shared/Breadcrumb';
 import { InfoGrid } from '@/components/shared/InfoGrid';
 import { CardGrid } from '@/components/shared/CardGrid';
 import { SubjectCard } from '@/components/cards/SubjectCard';
-import { universities } from '@/lib/mockData';
-import { resolveRoute, generateBreadcrumbs } from '@/lib/routeHelpers';
+import { notFound } from 'next/navigation';
 import { BookOpen } from 'lucide-react';
+import { notespitaraApi } from '@/store/services/notespitara';
+import { PageLoader } from '@/components/ui/PageLoader';
+import { formatSlug } from '@/lib/utils';
 
 interface SemesterPageProps {
   params: Promise<{
@@ -20,46 +25,41 @@ interface SemesterPageProps {
   }>;
 }
 
-export async function generateStaticParams() {
-  // Return empty array to avoid generating thousands of static pages at build time.
-  // Pages will be rendered on-demand (SSR) when accessed.
-  return [];
-}
+export default function SemesterPage({ params }: SemesterPageProps) {
+  const { universitySlug, programSlug, branchSlug, semesterSlug } = use(params);
 
-export async function generateMetadata({ params }: SemesterPageProps) {
-  const { universitySlug, programSlug, branchSlug, semesterSlug } = await params;
-  const resolved = resolveRoute({ universitySlug, programSlug, branchSlug, semesterSlug });
+  // Parse semester slug (e.g. "semester-1" -> "1")
+  const semesterStr = semesterSlug.replace('semester-', '');
 
-  if (!resolved.semester) {
-    return { title: 'Semester Not Found' };
-  }
+  const { data: branchResponse, isLoading: isBranchLoading } = notespitaraApi.useGetBranchBySlugQuery({ slug: branchSlug });
+  const branch = (branchResponse as any)?.data;
 
-  return {
-    title: `Semester ${resolved.semester.number} - ${resolved.branch.name} - NotesPitara`,
-    description: `Browse subjects and notes for Semester ${resolved.semester.number} of ${resolved.branch.name} at ${resolved.university.name}.`,
-  };
-}
-
-export default async function SemesterPage({ params }: SemesterPageProps) {
-  const { universitySlug, programSlug, branchSlug, semesterSlug } = await params;
-  const resolved = resolveRoute({
-    universitySlug,
-    programSlug,
-    branchSlug,
-    semesterSlug,
-  });
-
-  if (!resolved.semester) {
-    return null; // notFound() will be called by resolveRoute
-  }
-
-  const { university, program, branch } = resolved;
-  const semester = resolved.semester;
-
-  const breadcrumbs = generateBreadcrumbs(
-    { universitySlug, programSlug, branchSlug, semesterSlug },
-    resolved
+  // We need the branch ID to find the semester ID
+  const { data: semestersResponse, isLoading: isSemsLoading } = notespitaraApi.useGetSemestersByBranchQuery(
+    { id: branch?.id || '', page: 0, size: 50 },
+    { skip: !branch?.id }
   );
+  
+  const semestersContent = (semestersResponse as any)?.data?.semesters?.content || [];
+  const semester = useMemo(() => {
+    return semestersContent.find((s: any) => String(s.number) === semesterStr || s.name === semesterStr);
+  }, [semestersContent, semesterStr]);
+
+  const { data: subjectData, isLoading: isSubjLoading } = notespitaraApi.useGetSubjectsBySemesterQuery(
+    { id: semester?.id || '', page: 0, size: 50 },
+    { skip: !semester?.id }
+  );
+
+  if (isBranchLoading || isSemsLoading) return <PageLoader />;
+  if (!branch || !semester) return notFound();
+
+  const breadcrumbs = [
+    { label: 'Explore', href: '/explore' },
+    { label: formatSlug(universitySlug), href: `/university/${universitySlug}` },
+    { label: formatSlug(programSlug), href: `/university/${universitySlug}/${programSlug}` },
+    { label: branch.name, href: `/university/${universitySlug}/${programSlug}/${branchSlug}` },
+    { label: `Semester ${semester.number || semesterStr}` }
+  ];
 
   return (
     <>
@@ -76,8 +76,8 @@ export default async function SemesterPage({ params }: SemesterPageProps) {
                 </div>
                 <div>
                   <PageHeader
-                    title={`Semester ${semester.number}`}
-                    subtitle={`${semester.totalSubjects} Subjects • ${semester.totalNotes} Notes`}
+                    title={`Semester ${semester.number || semesterStr}`}
+                    subtitle={`${semester.subjectsCountTotal || 0} Subjects`}
                     className="mb-0"
                   />
                 </div>
@@ -86,11 +86,10 @@ export default async function SemesterPage({ params }: SemesterPageProps) {
               <InfoGrid
                 items={[
                   { label: 'Branch', value: branch.name },
-                  { label: 'Program', value: program.name },
-                  { label: 'University', value: university.name },
-                  { label: 'Total Notes', value: semester.totalNotes.toLocaleString() },
+                  { label: 'Program', value: formatSlug(programSlug) },
+                  { label: 'University', value: formatSlug(universitySlug) },
                 ]}
-                columns={4}
+                columns={3}
               />
             </div>
           </Container>
@@ -99,15 +98,23 @@ export default async function SemesterPage({ params }: SemesterPageProps) {
         <Section className="py-12 md:py-16 bg-muted/40">
           <Container>
             <h2 className="text-3xl md:text-4xl font-bold mb-8">Subjects</h2>
-            <CardGrid columns="md">
-              {semester.subjects.map((subject) => (
-                <SubjectCard
-                  key={subject.id}
-                  subject={subject}
-                  href={`/university/${universitySlug}/${programSlug}/${branchSlug}/semester-${semester.number}/${subject.slug}`}
-                />
-              ))}
-            </CardGrid>
+            {isSubjLoading ? (
+              <div className="flex justify-center py-8"><PageLoader /></div>
+            ) : (subjectData as any)?.data?.subjects?.content?.length ? (
+              <CardGrid columns="md">
+                {(subjectData as any).data.subjects.content.map((subject: any) => (
+                  <SubjectCard
+                    key={subject.id}
+                    subject={subject}
+                    href={`/university/${universitySlug}/${programSlug}/${branch.slug}/semester-${semester.number || semesterStr}/${subject.slug}`}
+                  />
+                ))}
+              </CardGrid>
+            ) : (
+              <div className="text-center py-8 text-muted-foreground border rounded-lg bg-card">
+                No subjects found for this semester.
+              </div>
+            )}
           </Container>
         </Section>
       </main>

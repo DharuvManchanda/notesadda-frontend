@@ -1,10 +1,9 @@
 import Link from 'next/link';
-import { Subject } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { BookMarked, FileText } from 'lucide-react';
 
 interface SubjectCardProps {
-  subject: Subject;
+  subject: any;
   href: string;
 }
 
@@ -29,10 +28,10 @@ export function SubjectCard({ subject, href }: SubjectCardProps) {
           {subject.description}
         </p>
 
-        <div className="flex items-center gap-1 text-sm mb-4">
+        {/* <div className="flex items-center gap-1 text-sm mb-4">
           <FileText className="h-4 w-4 text-accent" />
-          <span className="text-muted-foreground">{subject.totalNotes} Notes</span>
-        </div>
+          <span className="text-muted-foreground">{subject.notesCountTotal || 0} Notes</span>
+        </div> */}
 
         <Button variant="outline" size="sm" className="w-full">
           View Notes

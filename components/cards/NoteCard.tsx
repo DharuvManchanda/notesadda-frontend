@@ -1,16 +1,15 @@
 import Link from 'next/link';
-import { Note } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Download, Star, User } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 
 interface NoteCardProps {
-  note: Note;
+  note: any;
   universitySlug?: string;
   programSlug?: string;
   branchSlug?: string;
-  semesterNumber?: number;
+  semesterNumber?: number | string;
   subjectSlug?: string;
 }
 
@@ -38,7 +37,7 @@ export function NoteCard({
         <div className="flex items-start justify-between mb-4">
           <div className="flex-1 mr-4">
             <Badge variant="secondary" className="mb-2">
-              {note.fileType.toUpperCase()}
+              {note.fileType?.toUpperCase() || 'PDF'}
             </Badge>
             <h3 className="text-base font-bold line-clamp-2 group-hover:text-primary transition-colors">
               {note.title}
@@ -52,24 +51,24 @@ export function NoteCard({
 
         <div className="flex items-center gap-2 text-xs text-muted-foreground mb-4 pb-4 border-b">
           <User className="h-3 w-3" />
-          <span className="font-medium">{note.uploadedBy.name}</span>
+          <span className="font-medium">{note.uploaderName || note.user?.name || note.uploadedBy?.name || 'Unknown'}</span>
           <span className="text-muted-foreground/60">•</span>
-          <span>{formatDistanceToNow(new Date(note.uploadedAt), { addSuffix: true })}</span>
+          <span>{note.createdAt ? formatDistanceToNow(new Date(note.createdAt), { addSuffix: true }) : 'Recently'}</span>
         </div>
 
-        <div className="grid grid-cols-3 gap-2 mb-4 text-xs">
+        {/* <div className="grid grid-cols-3 gap-2 mb-4 text-xs">
           <div className="flex items-center gap-1">
             <Download className="h-3 w-3 text-accent" />
-            <span className="text-muted-foreground">{note.downloads.toLocaleString()}</span>
+            <span className="text-muted-foreground">{(note.downloadsCount || 0).toLocaleString()}</span>
           </div>
           <div className="flex items-center gap-1">
             <Star className="h-3 w-3 text-amber-500 fill-amber-500" />
-            <span className="text-muted-foreground">{note.rating}</span>
+            <span className="text-muted-foreground">{note.averageRating || 0}</span>
           </div>
           <div className="text-right text-muted-foreground">
-            {note.fileSize}
+            {note.fileSize || 'Unknown Size'}
           </div>
-        </div>
+        </div> */}
 
         <Button variant="outline" size="sm" className="w-full">
           View Note

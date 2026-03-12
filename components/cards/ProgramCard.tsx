@@ -1,10 +1,9 @@
 import Link from 'next/link';
-import { Program } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { GraduationCap, Clock, FileText } from 'lucide-react';
 
 interface ProgramCardProps {
-  program: Program;
+  program: any;
   universitySlug: string;
 }
 
@@ -17,7 +16,7 @@ export function ProgramCard({ program, universitySlug }: ProgramCardProps) {
             <GraduationCap className="h-6 w-6 text-secondary" />
           </div>
           <span className="text-xs font-semibold px-2 py-1 rounded-full bg-muted text-muted-foreground">
-            {program.totalBranches} Branches
+            {program.branchesCountTotal || 0} Branches
           </span>
         </div>
 
@@ -35,11 +34,11 @@ export function ProgramCard({ program, universitySlug }: ProgramCardProps) {
         <p className="text-sm text-muted-foreground mb-4 line-clamp-2">
           {program.description}
         </p>
-
+{/* 
         <div className="flex items-center gap-1 text-sm mb-4">
           <FileText className="h-4 w-4 text-accent" />
           <span className="text-muted-foreground">{program.totalNotes.toLocaleString()} Notes</span>
-        </div>
+        </div> */}
 
         <Button variant="outline" size="sm" className="w-full">
           View Branches

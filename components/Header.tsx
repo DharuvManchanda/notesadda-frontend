@@ -39,10 +39,10 @@ export function Header() {
               <Upload className="h-4 w-4" />
               <span className="hidden sm:inline">Upload</span>
             </Link>
-            <Link href="/dashboard/profile" className="flex items-center gap-1 text-sm font-medium hover:text-primary transition-colors">
+            {/* <Link href="/dashboard/profile" className="flex items-center gap-1 text-sm font-medium hover:text-primary transition-colors">
               <User className="h-4 w-4" />
               <span className="hidden sm:inline">Profile</span>
-            </Link>
+            </Link> */}
             <Link href="/admin" className="flex items-center gap-1 text-sm font-medium hover:text-primary transition-colors">
               <LayoutDashboard className="h-4 w-4" />
               <span className="hidden sm:inline">Admin</span>

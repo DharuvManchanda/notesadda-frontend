@@ -1,3 +1,6 @@
+'use client';
+
+import { use, useMemo } from 'react';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
 import { Container } from '@/components/shared/Container';
@@ -5,9 +8,11 @@ import { Section } from '@/components/shared/Section';
 import { PageHeader } from '@/components/shared/PageHeader';
 import { Breadcrumb } from '@/components/shared/Breadcrumb';
 import { NotesList } from '@/components/shared/NotesList';
-import { universities } from '@/lib/mockData';
-import { resolveRoute, generateBreadcrumbs } from '@/lib/routeHelpers';
 import { BookMarked } from 'lucide-react';
+import { notFound } from 'next/navigation';
+import { notespitaraApi } from '@/store/services/notespitara';
+import { PageLoader } from '@/components/ui/PageLoader';
+import { formatSlug } from '@/lib/utils';
 
 interface SubjectPageProps {
   params: Promise<{
@@ -19,40 +24,31 @@ interface SubjectPageProps {
   }>;
 }
 
-export async function generateStaticParams() {
-  // Return empty array to avoid generating thousands of static pages at build time.
-  // Pages will be rendered on-demand (SSR) when accessed.
-  return [];
-}
+export default function SubjectPage({ params }: SubjectPageProps) {
+  const { universitySlug, programSlug, branchSlug, semesterSlug, subjectSlug } = use(params);
 
-export async function generateMetadata({ params }: SubjectPageProps) {
-  const { universitySlug, programSlug, branchSlug, semesterSlug, subjectSlug } = await params;
-  const { university, subject } = resolveRoute({ universitySlug, programSlug, branchSlug, semesterSlug, subjectSlug });
+  // Parse semester slug (e.g. "semester-1" -> "1")
+  const semesterStr = semesterSlug.replace('semester-', '');
 
-  return {
-    title: `${subject!.name} - ${subject!.code} - NotesPitara`,
-    description: `Browse ${subject!.totalNotes} study notes for ${subject!.name} (${subject!.code}) from ${university.name}.`,
-  };
-}
+  const { data: subjectResponse, isLoading: isSubjLoading } = notespitaraApi.useGetSubjectBySlugQuery({ slug: subjectSlug });
+  const subject = (subjectResponse as any)?.data;
 
-export default async function SubjectPage({ params }: SubjectPageProps) {
-  const { universitySlug, programSlug, branchSlug, semesterSlug, subjectSlug } = await params;
-  const { university, program, branch, semester, subject } = resolveRoute({
-    universitySlug,
-    programSlug,
-    branchSlug,
-    semesterSlug,
-    subjectSlug,
-  });
-
-  if (!semester || !subject) {
-    return null;
-  }
-
-  const breadcrumbs = generateBreadcrumbs(
-    { universitySlug, programSlug, branchSlug, semesterSlug, subjectSlug },
-    { university, program, branch, semester, subject }
+  const { data: notesResponse, isLoading: isNotesLoading } = notespitaraApi.useGetNotesBySubjectQuery(
+    { id: subject?.id || '', page: 0, size: 50 },
+    { skip: !subject?.id }
   );
+
+  if (isSubjLoading) return <PageLoader />;
+  if (!subject) return notFound();
+
+  const breadcrumbs = [
+    { label: 'Explore', href: '/explore' },
+    { label: formatSlug(universitySlug), href: `/university/${universitySlug}` },
+    { label: formatSlug(programSlug), href: `/university/${universitySlug}/${programSlug}` },
+    { label: formatSlug(branchSlug), href: `/university/${universitySlug}/${programSlug}/${branchSlug}` },
+    { label: `Semester ${semesterStr}`, href: `/university/${universitySlug}/${programSlug}/${branchSlug}/semester-${semesterStr}` },
+    { label: subject.name }
+  ];
 
   return (
     <>
@@ -70,7 +66,7 @@ export default async function SubjectPage({ params }: SubjectPageProps) {
                 <div>
                   <PageHeader
                     title={subject.name}
-                    subtitle={`${subject.code} • ${subject.totalNotes} Study Notes`}
+                    subtitle={`${subject.code} • ${subject.notesCountTotal || 0} Study Notes`}
                     className="mb-0"
                   />
                 </div>
@@ -87,15 +83,15 @@ export default async function SubjectPage({ params }: SubjectPageProps) {
                 </div>
                 <div>
                   <p className="text-muted-foreground">Semester</p>
-                  <p className="font-semibold">{semester?.number}</p>
+                  <p className="font-semibold">{semesterStr}</p>
                 </div>
                 <div>
                   <p className="text-muted-foreground">Branch</p>
-                  <p className="font-semibold">{branch.name}</p>
+                  <p className="font-semibold">{formatSlug(branchSlug)}</p>
                 </div>
                 <div>
                   <p className="text-muted-foreground">Total Notes</p>
-                  <p className="text-2xl font-bold text-accent">{subject.totalNotes}</p>
+                  <p className="text-2xl font-bold text-accent">{subject.notesCountTotal || 0}</p>
                 </div>
               </div>
             </div>
@@ -106,14 +102,22 @@ export default async function SubjectPage({ params }: SubjectPageProps) {
           <Container>
             <h2 className="text-3xl md:text-4xl font-bold mb-8">Study Notes</h2>
 
-            <NotesList
-              notes={subject.notes}
-              universitySlug={universitySlug}
-              programSlug={programSlug}
-              branchSlug={branchSlug}
-              semesterNumber={semester?.number || 1}
-              subjectSlug={subject.slug}
-            />
+            {isNotesLoading ? (
+              <div className="flex justify-center py-8"><PageLoader /></div>
+            ) : (notesResponse as any)?.data?.notes?.content?.length ? (
+              <NotesList
+                notes={(notesResponse as any).data.notes.content}
+                universitySlug={universitySlug}
+                programSlug={programSlug}
+                branchSlug={branchSlug}
+                semesterNumber={semesterStr}
+                subjectSlug={subject.slug}
+              />
+            ) : (
+              <div className="text-center py-8 text-muted-foreground border rounded-lg bg-card mb-8">
+                No study notes found for this subject.
+              </div>
+            )}
           </Container>
         </Section>
 

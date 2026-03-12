@@ -65,7 +65,7 @@ export default function ProgramsPage() {
                   <th className="px-6 py-3 text-left text-sm font-semibold text-foreground">University</th>
                   <th className="px-6 py-3 text-left text-sm font-semibold text-foreground">Type</th>
                   <th className="px-6 py-3 text-left text-sm font-semibold text-foreground">Duration</th>
-                  <th className="px-6 py-3 text-left text-sm font-semibold text-foreground">Branches</th>
+                  {/* <th className="px-6 py-3 text-left text-sm font-semibold text-foreground">Branches</th> */}
                   <th className="px-6 py-3 text-right text-sm font-semibold text-foreground">Actions</th>
                 </tr>
               </thead>
@@ -80,9 +80,9 @@ export default function ProgramsPage() {
                       </Badge>
                     </td>
                     <td className="px-6 py-3 text-sm text-muted-foreground">{prog.duration} years</td>
-                    <td className="px-6 py-3 text-sm text-muted-foreground">
-                      {/* Removed branches badge as it might not be implemented in GET API */}
-                    </td>
+                    {/* <td className="px-6 py-3 text-sm text-muted-foreground">
+                      Removed branches badge as it might not be implemented in GET API
+                    </td> */}
                     <td className="px-6 py-3 text-right">
                       <div className="flex justify-end gap-2">
                         <Button

@@ -1,3 +1,6 @@
+'use client';
+
+import { use } from 'react';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
 import { Container } from '@/components/shared/Container';
@@ -7,9 +10,10 @@ import { Breadcrumb } from '@/components/shared/Breadcrumb';
 import { InfoGrid } from '@/components/shared/InfoGrid';
 import { CardGrid } from '@/components/shared/CardGrid';
 import { ProgramCard } from '@/components/cards/ProgramCard';
-import { getUniversityBySlug, universities } from '@/lib/mockData';
 import { notFound } from 'next/navigation';
 import { MapPin, Calendar } from 'lucide-react';
+import { notespitaraApi } from '@/store/services/notespitara';
+import { PageLoader } from '@/components/ui/PageLoader';
 
 interface UniversityPageProps {
   params: Promise<{
@@ -17,39 +21,33 @@ interface UniversityPageProps {
   }>;
 }
 
-export async function generateStaticParams() {
-  return universities.map((uni) => ({
-    universitySlug: uni.slug,
-  }));
-}
+export default function UniversityPage({ params }: UniversityPageProps) {
+  // Unwrap params
+  const { universitySlug } = use(params);
 
-export async function generateMetadata({ params }: UniversityPageProps) {
-  const { universitySlug } = await params;
-  const university = getUniversityBySlug(universitySlug);
+  const { data: uniData, isLoading: isUniLoading } = notespitaraApi.useGetUniversityBySlugQuery({
+    slug: universitySlug,
+  });
 
-  if (!university) {
-    return { title: 'University Not Found' };
-  }
+  const university = (uniData as any)?.data;
 
-  return {
-    title: `${university.name} - NotesPitara`,
-    description: `${university.description} Browse programs and notes from ${university.name}.`,
-  };
-}
+  const { data: progData, isLoading: isProgLoading } = notespitaraApi.useGetProgramsByUniversityQuery(
+    {
+      id: university?.id || '',
+      page: 0,
+      size: 50, // Get a reasonable number of programs
+    },
+    { skip: !university?.id }
+  );
 
-export default async function UniversityPage({ params }: UniversityPageProps) {
-  const { universitySlug } = await params;
-  const university = getUniversityBySlug(universitySlug);
-
-  if (!university) {
-    notFound();
-  }
+  if (isUniLoading) return <PageLoader />;
+  if (!university) return notFound();
 
   const infoItems = [
-    { icon: <MapPin className="h-4 w-4" />, label: 'Location', value: university.location },
-    { icon: <Calendar className="h-4 w-4" />, label: 'Founded', value: university.foundedYear },
-    { label: 'Programs', value: university.totalPrograms },
-    { label: 'Total Notes', value: university.totalNotes.toLocaleString() },
+    { icon: <MapPin className="h-4 w-4" />, label: 'Location', value: university.city && university.state ? `${university.city}, ${university.state}` : 'N/A' },
+    // { icon: <Calendar className="h-4 w-4" />, label: 'Founded', value: university.foundedYear },
+    { label: 'Programs', value: (uniData as any)?.data?.programsCountTotal || 0 },
+    // { label: 'Total Notes', value: university.totalNotes.toLocaleString() },
   ];
 
   return (
@@ -79,7 +77,7 @@ export default async function UniversityPage({ params }: UniversityPageProps) {
                 </div>
               </div>
 
-              <InfoGrid items={infoItems} columns={4} />
+              <InfoGrid items={infoItems} columns={3} />
             </div>
           </Container>
         </Section>
@@ -87,15 +85,23 @@ export default async function UniversityPage({ params }: UniversityPageProps) {
         <Section className="py-12 md:py-16 bg-muted/40">
           <Container>
             <h2 className="text-3xl md:text-4xl font-bold mb-8">Programs</h2>
-            <CardGrid columns="md">
-              {university.programs.map((program) => (
-                <ProgramCard
-                  key={program.id}
-                  program={program}
-                  universitySlug={university.slug}
-                />
-              ))}
-            </CardGrid>
+            {isProgLoading ? (
+              <div className="flex justify-center py-8"><PageLoader /></div>
+            ) : (progData as any)?.data?.programs?.content?.length ? (
+              <CardGrid columns="md">
+                {(progData as any).data.programs.content.map((program: any) => (
+                  <ProgramCard
+                    key={program.id}
+                    program={program}
+                    universitySlug={university.slug}
+                  />
+                ))}
+              </CardGrid>
+            ) : (
+              <div className="text-center py-8 text-muted-foreground border rounded-lg bg-card">
+                No programs found for this university.
+              </div>
+            )}
           </Container>
         </Section>
       </main>

@@ -3,10 +3,8 @@ import { Footer } from "@/components/Footer";
 import { Container } from "@/components/shared/Container";
 import { Section } from "@/components/shared/Section";
 import { SearchBar } from "@/components/shared/SearchBar";
-import { UniversityCard } from "@/components/cards/UniversityCard";
-import { NoteCard } from "@/components/cards/NoteCard";
+import { FeaturedUniversities } from "@/components/home/FeaturedUniversities";
 import { Button } from "@/components/ui/button";
-import { universities } from "@/lib/mockData";
 import Link from "next/link";
 import { BookOpen, Search, Share2, TrendingUp } from "lucide-react";
 
@@ -17,23 +15,6 @@ export const metadata = {
 };
 
 export default function HomePage() {
-  // Get featured universities (first 3)
-  const featuredUniversities = universities.slice(0, 3);
-
-  // Get trending notes from all universities
-  const trendingNotes = universities
-    .flatMap((uni) =>
-      uni.programs.flatMap((prog) =>
-        prog.branches.flatMap((branch) =>
-          branch.semesters.flatMap((sem) =>
-            sem.subjects.flatMap((subj) => subj.notes),
-          ),
-        ),
-      ),
-    )
-    .sort((a, b) => b.downloads - a.downloads)
-    .slice(0, 3);
-
   return (
     <>
       <Header />
@@ -41,7 +22,7 @@ export default function HomePage() {
         {/* Hero Section */}
         <div className="relative">
           <div className="absolute inset-0 bg-grid opacity-[0.1] pointer-events-none" />
-          <Section className="pt-16 md:pt-24 pb-12 md:pb-16">
+          <Section className="pt-16 md:pt-24++ pb-12 md:pb-16">
             <Container className="relative z-10">
               <div className="max-w-3xl mx-auto text-center">
                 <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-balance mb-6">
@@ -73,7 +54,7 @@ export default function HomePage() {
                   <SearchBar className="max-w-full bg-background" />
                 </div>
 
-                <div className="flex justify-around gap-4 md:gap-8 text-center text-sm">
+                {/* <div className="flex justify-around gap-4 md:gap-8 text-center text-sm">
                   <div>
                     <p className="text-2xl md:text-3xl font-bold text-primary">
                       {universities.length}
@@ -97,7 +78,7 @@ export default function HomePage() {
                     </p>
                     <p className="text-muted-foreground">Notes</p>
                   </div>
-                </div>
+                </div> */}
               </div>
             </Container>
           </Section>
@@ -115,11 +96,7 @@ export default function HomePage() {
               </p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-              {featuredUniversities.map((uni) => (
-                <UniversityCard key={uni.id} university={uni} />
-              ))}
-            </div>
+            <FeaturedUniversities />
 
             <div className="text-center">
               <Link href="/explore">
@@ -130,7 +107,7 @@ export default function HomePage() {
         </Section>
 
         {/* Trending Notes */}
-        <Section className="py-12 md:py-16">
+        {/* <Section className="py-12 md:py-16">
           <Container>
             <div className="mb-12">
               <div className="flex items-center gap-2 mb-3">
@@ -150,7 +127,7 @@ export default function HomePage() {
               ))}
             </div>
           </Container>
-        </Section>
+        </Section> */}
 
         {/* How It Works */}
         <Section className="py-12 md:py-16 bg-muted/40">

@@ -429,7 +429,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/NotesCreateRequest"
+                "$ref": "#/components/schemas/NotesUpdateRequest"
               }
             }
           },
@@ -517,12 +517,12 @@
         }
       }
     },
-    "/api/notes/{id}/approve": {
+    "/api/notes/{id}/admin/approve": {
       "put": {
         "tags": [
           "Notes"
         ],
-        "operationId": "approveNotes",
+        "operationId": "approveNotesFromAdminReview",
         "parameters": [
           {
             "name": "id",
@@ -1660,6 +1660,37 @@
         }
       }
     },
+    "/api/notes/{id}/admin/view": {
+      "get": {
+        "tags": [
+          "Notes"
+        ],
+        "operationId": "getAdminViewLink",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/notes/slug/{slug}": {
       "get": {
         "tags": [
@@ -1712,6 +1743,147 @@
             "required": false,
             "schema": {
               "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 0
+            }
+          },
+          {
+            "name": "size",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 20
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/notes/me": {
+      "get": {
+        "tags": [
+          "Notes"
+        ],
+        "operationId": "getMyNotes",
+        "parameters": [
+          {
+            "name": "q",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "query",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "isApproved",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "reject",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "approved",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 0
+            }
+          },
+          {
+            "name": "size",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 20
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/notes/all-notes": {
+      "get": {
+        "tags": [
+          "Notes"
+        ],
+        "summary": "Admin list: all notes, approved, pending, or rejected",
+        "operationId": "getAllNotesForAdmin",
+        "parameters": [
+          {
+            "name": "isApproved",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "reject",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean"
             }
           },
           {
@@ -2045,7 +2217,7 @@
           "universityId"
         ]
       },
-      "NotesCreateRequest": {
+      "NotesUpdateRequest": {
         "type": "object",
         "properties": {
           "title": {
@@ -2055,32 +2227,9 @@
             "type": "string",
             "maxLength": 5000,
             "minLength": 0
-          },
-          "fileUrl": {
-            "type": "string",
-            "maxLength": 255,
-            "minLength": 0,
-            "pattern": "^(https?://).+"
-          },
-          "fileKey": {
-            "type": "string",
-            "maxLength": 255,
-            "minLength": 0
-          },
-          "fileType": {
-            "type": "string",
-            "pattern": "^(?i)PDF$"
-          },
-          "subjectId": {
-            "type": "string",
-            "format": "uuid"
           }
         },
         "required": [
-          "fileKey",
-          "fileType",
-          "fileUrl",
-          "subjectId",
           "title"
         ]
       },

@@ -13,6 +13,8 @@ import { NoteDetailsStep } from '@/components/upload/NoteDetailsStep';
 import { ReviewStep } from '@/components/upload/ReviewStep';
 import { UploadSuccessScreen } from '@/components/upload/UploadSuccessScreen';
 import { UploadNavigationButtons } from '@/components/upload/UploadNavigationButtons';
+import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
+import { notespitaraApi } from '@/store/services/notespitara';
 
 const STEPS = [
   { number: 1, label: 'Select Course' },
@@ -36,8 +38,7 @@ export default function UploadPage() {
   });
   const [file, setFile] = useState<File | null>(null);
   const [error, setError] = useState('');
-
-  // Remove mock data searches since we don't have static list anymore
+  const [uploadPdf, { isLoading: isUploading }] = notespitaraApi.useUploadPdfMutation();
 
   const validateStep = (step: number): boolean => {
     if (step === 1) {
@@ -78,17 +79,26 @@ export default function UploadPage() {
     setError('');
   };
 
-  const handleSubmit = () => {
-    console.log('Submitting note:', {
-      university: selectedUniversity,
-      program: selectedProgram,
-      branch: selectedBranch,
-      semester: selectedSemester,
-      subject: selectedSubject,
-      ...formData,
-      file: file?.name,
-    });
-    setCurrentStep(4);
+  const handleSubmit = async () => {
+    if (!file) return;
+    setError('');
+
+    try {
+      const payload = new FormData();
+      payload.append('file', file);
+
+      await uploadPdf({
+        title: formData.title, // These will still be sent as ?title=...&subjectId=... params per your API
+        description: formData.description || undefined,
+        subjectId: selectedSubject,
+        body: payload as any, // Cast to any to bypass the { file: Blob } TS definition
+      }).unwrap();
+      setCurrentStep(4);
+    } catch (err: any) {
+      setError(
+        err?.data?.message || err?.data?.error || 'Failed to upload note'
+      );
+    }
   };
 
   const reviewItems = [
@@ -103,7 +113,7 @@ export default function UploadPage() {
   ];
 
   return (
-    <>
+    <ProtectedRoute>
       <Header />
       <main>
         <Section className="pt-8 md:pt-12 lg:pt-16 pb-12 md:pb-16 lg:pb-20">
@@ -154,12 +164,13 @@ export default function UploadPage() {
                 onNext={handleNext}
                 onSubmit={handleSubmit}
                 isLastStep={currentStep === TOTAL_STEPS}
+                isLoading={isUploading}
               />
             </div>
           </Container>
         </Section>
       </main>
       <Footer />
-    </>
+    </ProtectedRoute>
   );
 }

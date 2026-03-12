@@ -4,16 +4,15 @@ import { Suspense } from 'react';
 import { NoteCard } from '@/components/cards/NoteCard';
 import { Pagination } from '@/components/shared/Pagination';
 import { usePagination } from '@/hooks/usePagination';
-import { Note } from '@/lib/types';
 
 const NOTES_PER_PAGE = 9;
 
 interface NotesListProps {
-    notes: Note[];
+    notes: any[];
     universitySlug: string;
     programSlug: string;
     branchSlug: string;
-    semesterNumber: number;
+    semesterNumber: number | string;
     subjectSlug: string;
 }
 
@@ -45,7 +44,7 @@ function NotesListInner({
                         universitySlug={universitySlug}
                         programSlug={programSlug}
                         branchSlug={branchSlug}
-                        semesterNumber={semesterNumber}
+                        semesterNumber={semesterNumber as any}
                         subjectSlug={subjectSlug}
                     />
                 ))}

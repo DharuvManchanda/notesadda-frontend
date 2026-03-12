@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useContext, useCallback } from 'react';
+import React, { createContext, useContext, useCallback, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import type { RootState } from '@/store/store';
 import { clearCredentials, type AuthUser } from '@/store/authSlice';
@@ -10,6 +10,7 @@ interface AuthContextType {
   user: AuthUser | null;
   isAuthenticated: boolean;
   logout: () => void;
+  isAuthLoading: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -19,12 +20,34 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const { user, isAuthenticated } = useSelector((state: RootState) => state.auth);
   const [signoutUser] = notespitaraApi.useSignoutUserMutation();
 
+  const { isLoading, error, isError } = notespitaraApi.useGetUserDetailsQuery(undefined, {
+    skip: !isAuthenticated,
+  });
+
+  useEffect(() => {
+    if (!isError || !error) return;
+
+    if ('status' in error) {
+      // Logout only if unauthorized
+      if (error.status === 401) {
+        dispatch(clearCredentials());
+        dispatch(notespitaraApi.util.resetApiState());
+      }
+
+      // Server/network issues — just log warning
+      else {
+        console.warn('Auth verification failed due to server/network issue:', error);
+      }
+    }
+  }, [isError, error, dispatch]);
+
   const logout = useCallback(async () => {
     try {
       await signoutUser().unwrap();
-    } catch {
-      // Even if signout API fails, clear local state
+    } catch (err) {
+      console.warn('Signout API failed, clearing local session anyway', err);
     }
+
     dispatch(clearCredentials());
     dispatch(notespitaraApi.util.resetApiState());
   }, [dispatch, signoutUser]);
@@ -33,18 +56,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     user,
     isAuthenticated,
     logout,
+    isAuthLoading: isLoading,
   };
 
-  return (
-    <AuthContext.Provider value={value}>
-      {children}
-    </AuthContext.Provider>
-  );
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
 export function useAuth() {
   const context = useContext(AuthContext);
-  if (context === undefined) {
+  if (!context) {
     throw new Error('useAuth must be used within an AuthProvider');
   }
   return context;
