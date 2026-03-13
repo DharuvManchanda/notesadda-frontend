@@ -5,6 +5,7 @@ import { UniversityCard } from '@/components/cards/UniversityCard';
 import { Pagination } from '@/components/shared/Pagination';
 import { notespitaraApi } from '@/store/services/notespitara';
 import { PageLoader } from '@/components/ui/PageLoader';
+import type { ApiResponse, UniversitiesPayload } from '@/lib/api-types';
 
 const UNIVERSITIES_PER_PAGE = 6;
 
@@ -20,16 +21,18 @@ function UniversitiesListInner() {
         return <PageLoader />;
     }
 
-    if (isError || !(data as any)?.data?.universities) {
+    const universities = (data as ApiResponse<UniversitiesPayload>)?.data?.universities;
+
+    if (isError || !universities) {
         return <div className="text-center py-8 text-red-500">Failed to load universities.</div>;
     }
 
-    const { content, totalPages } = (data as any).data.universities;
+    const { content, totalPages } = universities;
 
     return (
         <>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {content.map((university: any) => (
+                {content.map((university) => (
                     <UniversityCard key={university.id} university={university} />
                 ))}
             </div>

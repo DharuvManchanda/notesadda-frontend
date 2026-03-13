@@ -1,5 +1,3 @@
-import { Header } from "@/components/Header";
-import { Footer } from "@/components/Footer";
 import { Container } from "@/components/shared/Container";
 import { Section } from "@/components/shared/Section";
 import { SearchBar } from "@/components/shared/SearchBar";
@@ -17,12 +15,11 @@ export const metadata = {
 export default function HomePage() {
   return (
     <>
-      <Header />
       <main>
         {/* Hero Section */}
         <div className="relative">
           <div className="absolute inset-0 bg-grid opacity-[0.1] pointer-events-none" />
-          <Section className="pt-16 md:pt-24++ pb-12 md:pb-16">
+          <Section className="pt-16 pb-12 md:pt-24 md:pb-16">
             <Container className="relative z-10">
               <div className="max-w-3xl mx-auto text-center">
                 <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-balance mb-6">
@@ -193,7 +190,6 @@ export default function HomePage() {
           </Container>
         </Section>
       </main>
-      <Footer />
     </>
   );
 }

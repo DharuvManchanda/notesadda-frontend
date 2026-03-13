@@ -3,6 +3,7 @@
 import { UniversityCard } from '@/components/cards/UniversityCard';
 import { notespitaraApi } from '@/store/services/notespitara';
 import { Loader2 } from 'lucide-react';
+import type { ApiResponse, UniversitiesPayload } from '@/lib/api-types';
 
 export function FeaturedUniversities() {
   const { data, isLoading, isError } = notespitaraApi.useGetAllUniversitiesQuery({ page: 0, size: 3 });
@@ -15,18 +16,19 @@ export function FeaturedUniversities() {
     );
   }
 
-  if (isError || !(data as any)?.data?.universities?.content) {
+  const universitiesResponse = (data as ApiResponse<UniversitiesPayload>)?.data?.universities;
+
+  if (isError || !universitiesResponse?.content) {
     return null;
   }
 
-  const universitiesResponse = (data as any).data.universities;
   const featuredUniversities = universitiesResponse.content;
   const hasMoreUniversities = universitiesResponse.totalElements > 3;
 
   return (
     <div className="space-y-8">
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-        {featuredUniversities.map((uni: any) => (
+        {featuredUniversities.map((uni) => (
           <UniversityCard key={uni.id} university={uni} />
         ))}
       </div>

@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from 'next/font/google'
 import { Analytics } from '@vercel/analytics/next'
 import { Toaster } from '@/components/ui/sonner'
 import { AuthProvider } from '@/components/auth/AuthContext'
+import { AppShell } from '@/components/providers/AppShell'
 import { StoreProvider } from '@/components/providers/StoreProvider'
 import './globals.css'
 
@@ -41,7 +42,7 @@ export default function RootLayout({
       <body className="font-sans antialiased" suppressHydrationWarning>
         <StoreProvider>
           <AuthProvider>
-            {children}
+            <AppShell>{children}</AppShell>
             <Toaster />
           </AuthProvider>
         </StoreProvider>

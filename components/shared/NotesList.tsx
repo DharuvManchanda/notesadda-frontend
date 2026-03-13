@@ -4,11 +4,12 @@ import { Suspense } from 'react';
 import { NoteCard } from '@/components/cards/NoteCard';
 import { Pagination } from '@/components/shared/Pagination';
 import { usePagination } from '@/hooks/usePagination';
+import type { NoteSummary } from '@/lib/api-types';
 
 const NOTES_PER_PAGE = 9;
 
 interface NotesListProps {
-    notes: any[];
+    notes: NoteSummary[];
     universitySlug: string;
     programSlug: string;
     branchSlug: string;

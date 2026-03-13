@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from './AuthContext';
 import { PageLoader } from '@/components/ui/PageLoader';
 
@@ -13,6 +13,8 @@ interface ProtectedRouteProps {
 export function ProtectedRoute({ children, allowedRoles }: ProtectedRouteProps) {
   const { isAuthenticated, user, isAuthLoading } = useAuth();
   const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
   const [isReady, setIsReady] = useState(false);
 
   useEffect(() => {
@@ -20,7 +22,9 @@ export function ProtectedRoute({ children, allowedRoles }: ProtectedRouteProps) 
 
     // Basic authentication check
     if (!isAuthenticated) {
-      router.push('/auth/signin');
+      const query = searchParams.toString();
+      const redirect = `${pathname}${query ? `?${query}` : ''}`;
+      router.push(`/auth/signin?redirect=${encodeURIComponent(redirect)}`);
       return;
     }
 
@@ -38,7 +42,7 @@ export function ProtectedRoute({ children, allowedRoles }: ProtectedRouteProps) 
 
     // Only set ready if authorized
     setIsReady(true);
-  }, [isAuthenticated, user, allowedRoles, router, isAuthLoading]);
+  }, [isAuthenticated, user, allowedRoles, router, isAuthLoading, pathname, searchParams]);
 
   // Optionally render a loading spinner or null while checking
   if (isAuthLoading || !isReady) {

@@ -1,8 +1,6 @@
 'use client';
 
 import { use } from 'react';
-import { Header } from '@/components/Header';
-import { Footer } from '@/components/Footer';
 import { Container } from '@/components/shared/Container';
 import { Section } from '@/components/shared/Section';
 import { PageHeader } from '@/components/shared/PageHeader';
@@ -49,7 +47,6 @@ export default function BranchPage({ params }: BranchPageProps) {
 
   return (
     <>
-      <Header />
       <main>
         <Section className="pt-8 md:pt-12 lg:pt-16">
           <Container>
@@ -107,7 +104,6 @@ export default function BranchPage({ params }: BranchPageProps) {
           </Container>
         </Section>
       </main>
-      <Footer />
     </>
   );
 }

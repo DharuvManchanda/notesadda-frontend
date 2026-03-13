@@ -1,9 +1,10 @@
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { MapPin, BookMarked, FileText } from 'lucide-react';
+import type { UniversitySummary } from '@/lib/api-types';
 
 interface UniversityCardProps {
-  university: any;
+  university: UniversitySummary;
 }
 
 export function UniversityCard({ university }: UniversityCardProps) {

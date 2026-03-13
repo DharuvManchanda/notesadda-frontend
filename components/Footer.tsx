@@ -1,3 +1,5 @@
+'use client';
+
 import Link from 'next/link';
 import { Container } from '@/components/shared/Container';
 import { Separator } from '@/components/ui/separator';
