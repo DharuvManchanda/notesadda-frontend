@@ -8,6 +8,7 @@ import { Breadcrumb } from '@/components/shared/Breadcrumb';
 import { InfoGrid } from '@/components/shared/InfoGrid';
 import { CardGrid } from '@/components/shared/CardGrid';
 import { ProgramCard } from '@/components/cards/ProgramCard';
+import { UniversityLogo } from '@/components/shared/UniversityLogo';
 import { notFound } from 'next/navigation';
 import { MapPin, Calendar } from 'lucide-react';
 import { notespitaraApi } from '@/store/services/notespitara';
@@ -62,9 +63,13 @@ export default function UniversityPage({ params }: UniversityPageProps) {
 
             <div className="mb-8">
               <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-start">
-                <div className="flex h-14 w-14 items-center justify-center rounded-lg bg-primary/10 sm:h-16 sm:w-16">
-                  <span className="text-2xl font-bold text-primary">{university.name.charAt(0)}</span>
-                </div>
+                <UniversityLogo
+                  name={university.name}
+                  logoUrl={university.logoUrl}
+                  className="h-14 w-14 sm:h-16 sm:w-16"
+                  iconClassName="h-7 w-7 text-primary"
+                  textClassName="text-2xl font-bold text-primary"
+                />
                 <div className="min-w-0">
                   <PageHeader
                     title={university.name}

@@ -5,6 +5,7 @@ import { Toaster } from '@/components/ui/sonner'
 import { AuthProvider } from '@/components/auth/AuthContext'
 import { AppShell } from '@/components/providers/AppShell'
 import { StoreProvider } from '@/components/providers/StoreProvider'
+import { ThemeProvider } from '@/components/theme-provider'
 import './globals.css'
 
 const _geist = Geist({ subsets: ["latin"] });
@@ -40,12 +41,14 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className="font-sans antialiased" suppressHydrationWarning>
-        <StoreProvider>
-          <AuthProvider>
-            <AppShell>{children}</AppShell>
-            <Toaster />
-          </AuthProvider>
-        </StoreProvider>
+        <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+          <StoreProvider>
+            <AuthProvider>
+              <AppShell>{children}</AppShell>
+              <Toaster />
+            </AuthProvider>
+          </StoreProvider>
+        </ThemeProvider>
         <Analytics />
       </body>
     </html>

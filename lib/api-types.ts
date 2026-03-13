@@ -27,6 +27,7 @@ export interface UniversitySummary {
   description?: string | null;
   city?: string | null;
   state?: string | null;
+  logoUrl?: string | null;
   programsCountTotal?: number;
 }
 

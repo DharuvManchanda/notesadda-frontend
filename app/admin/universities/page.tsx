@@ -8,15 +8,19 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Edit2, Trash2, Eye } from 'lucide-react';
 import { PageLoader } from '@/components/ui/PageLoader';
+import { ConfirmDeletePopover } from '@/components/shared/ConfirmDeletePopover';
 import { notespitaraApi } from '@/store/services/notespitara';
-import { GetAllUniversitiesResponse, University } from '@/components/types/types';
+import { University } from '@/components/types/types';
+import { toast } from 'sonner';
 
 export default function UniversitiesPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [openDialog, setOpenDialog] = useState(false);
   const [editingUniversity, setEditingUniversity] = useState<any>(null);
+  const [deleteUniversityId, setDeleteUniversityId] = useState<string | null>(null);
 
   const { data, isLoading, refetch } = notespitaraApi.useGetAllUniversitiesQuery({ page: 0, size: 20 });
+  const [deleteUniversity, { isLoading: isDeleting }] = notespitaraApi.useDeleteUniversityMutation();
   const typedData = data as any;
   const universities: University[] = Array.isArray(typedData) ? typedData : typedData?.data?.universities?.content || typedData?.data?.content || typedData?.content || [];
 
@@ -27,6 +31,18 @@ export default function UniversitiesPage() {
 
   const handleAddSuccess = () => {
     refetch();
+  };
+
+  const handleDelete = async (id: string) => {
+    try {
+      await deleteUniversity({ id }).unwrap();
+      toast.success('University deleted successfully');
+      setDeleteUniversityId(null);
+      refetch();
+    } catch (error) {
+      console.error('Error deleting university:', error);
+      toast.error('Failed to delete university');
+    }
   };
 
   if (isLoading) {
@@ -54,7 +70,8 @@ export default function UniversitiesPage() {
 
         <div className="px-6">
           <div className="bg-card border border-border rounded-lg overflow-hidden">
-            <table className="w-full">
+            <div className="overflow-x-auto">
+            <table className="min-w-[720px] w-full">
               <thead>
                 <tr className="border-b border-border bg-muted/50">
                   <th className="px-6 py-3 text-left text-sm font-semibold text-foreground">Name</th>
@@ -105,21 +122,29 @@ export default function UniversitiesPage() {
                         >
                           <Edit2 className="h-4 w-4" />
                         </Button>
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          className="text-destructive hover:text-destructive"
-                          onClick={() => console.log('Delete', uni.id)}
-                          title="Delete university"
+                        <ConfirmDeletePopover
+                          open={deleteUniversityId === uni.id}
+                          onOpenChange={(open) => setDeleteUniversityId(open ? uni.id : null)}
+                          onConfirm={() => handleDelete(uni.id)}
+                          isLoading={isDeleting && deleteUniversityId === uni.id}
+                          title="Delete this university?"
                         >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            className="text-destructive hover:text-destructive"
+                            title="Delete university"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </ConfirmDeletePopover>
                       </div>
                     </td>
                   </tr>
                 ))}
               </tbody>
             </table>
+            </div>
 
             {filteredUniversities.length === 0 && (
               <div className="p-8 text-center text-muted-foreground">

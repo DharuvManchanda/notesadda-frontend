@@ -15,6 +15,7 @@ import {
   X,
 } from 'lucide-react';
 import { useAuth } from '@/components/auth/AuthContext';
+import { LogoutConfirmButton } from '@/components/auth/LogoutConfirmButton';
 
 interface AdminLayoutProps {
   children: React.ReactNode;
@@ -101,10 +102,15 @@ export function AdminLayout({
           >
             {sidebarOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
           </Button>
-          <Button variant="outline" size="sm" className="w-full gap-2" onClick={logout}>
-            <LogOut className="h-4 w-4" />
-            {(sidebarOpen || mobileNavOpen) && <span>Logout</span>}
-          </Button>
+          <LogoutConfirmButton
+            onConfirm={logout}
+            description="This will log you out of your account. You will need to sign back in to access admin features again."
+          >
+            <Button variant="outline" size="sm" className="w-full gap-2">
+              <LogOut className="h-4 w-4" />
+              {(sidebarOpen || mobileNavOpen) && <span>Logout</span>}
+            </Button>
+          </LogoutConfirmButton>
         </div>
       </aside>
 
@@ -127,10 +133,15 @@ export function AdminLayout({
             <span className="truncate text-sm text-muted-foreground">
               {(user as any)?.name || adminName}
             </span>
-            <Button variant="outline" size="sm" className="gap-2" onClick={logout}>
-              <LogOut className="h-4 w-4" />
-              <span className="hidden sm:inline">Logout</span>
-            </Button>
+            <LogoutConfirmButton
+              onConfirm={logout}
+              description="This will log you out of your account. You will need to sign back in to access admin features again."
+            >
+              <Button variant="outline" size="sm" className="gap-2">
+                <LogOut className="h-4 w-4" />
+                <span className="hidden sm:inline">Logout</span>
+              </Button>
+            </LogoutConfirmButton>
           </div>
         </header>
 

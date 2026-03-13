@@ -121,7 +121,7 @@ function FileUploadField({ label, file, onChange, required }: FileUploadFieldPro
       <div className="border-2 border-dashed border-border rounded-lg p-8 text-center cursor-pointer hover:border-primary transition-colors">
         <input
           type="file"
-          accept=".pdf"
+          accept="application/pdf,.pdf"
           onChange={onChange}
           className="hidden"
           id="file-input"
@@ -129,7 +129,7 @@ function FileUploadField({ label, file, onChange, required }: FileUploadFieldPro
         <label htmlFor="file-input" className="cursor-pointer">
           <Upload className="h-12 w-12 text-muted-foreground mx-auto mb-2" />
           <p className="font-medium">{file ? file.name : 'Click to upload or drag and drop'}</p>
-          <p className="text-sm text-muted-foreground">Maximum size: 50MB</p>
+          <p className="text-sm text-muted-foreground">PDF only, maximum size 10MB</p>
         </label>
       </div>
     </div>

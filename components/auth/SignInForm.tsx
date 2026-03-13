@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useDispatch } from 'react-redux';
@@ -12,7 +12,12 @@ import { Input } from '@/components/ui/input';
 import { notespitaraApi } from '@/store/services/notespitara';
 import type { LoginRequest } from '@/store/services/notespitara';
 import { setCredentials } from '@/store/authSlice';
-import { getSafeRedirectPath } from '@/lib/auth-redirect';
+import {
+  clearPersistedAuthRedirectPath,
+  getSafeRedirectPath,
+  persistAuthRedirectPath,
+  readPersistedAuthRedirectPath,
+} from '@/lib/auth-redirect';
 
 export function SignInForm() {
   const router = useRouter();
@@ -21,6 +26,10 @@ export function SignInForm() {
   const [showPassword, setShowPassword] = useState(false);
   const [authenticateUser, { isLoading }] =
     notespitaraApi.useAuthenticateUserMutation();
+
+  useEffect(() => {
+    persistAuthRedirectPath(searchParams.get('redirect'));
+  }, [searchParams]);
 
   const {
     register,
@@ -49,7 +58,10 @@ export function SignInForm() {
       }
 
       toast.success('Signed in successfully!');
-      const redirectPath = getSafeRedirectPath(searchParams.get('redirect'));
+      const redirectPath = getSafeRedirectPath(
+        searchParams.get('redirect') || readPersistedAuthRedirectPath(),
+      );
+      clearPersistedAuthRedirectPath();
       router.push(redirectPath);
     } catch (error: any) {
       const message = error?.data?.message || error?.message || 'Sign in failed';
@@ -121,7 +133,14 @@ export function SignInForm() {
 
       <p className="text-center text-sm text-muted-foreground">
         Don&apos;t have an account?{' '}
-        <Link href="/auth/signup" className="font-medium text-primary hover:underline">
+        <Link
+          href={`/auth/signup?redirect=${encodeURIComponent(
+            getSafeRedirectPath(
+              searchParams.get('redirect') || readPersistedAuthRedirectPath(),
+            ),
+          )}`}
+          className="font-medium text-primary hover:underline"
+        >
           Sign Up
         </Link>
       </p>

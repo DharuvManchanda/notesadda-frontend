@@ -8,16 +8,20 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Edit2, Trash2, Eye } from 'lucide-react';
 import { PageLoader } from '@/components/ui/PageLoader';
+import { ConfirmDeletePopover } from '@/components/shared/ConfirmDeletePopover';
 import { notespitaraApi } from '@/store/services/notespitara';
-import { GetAllBranchesResponse, GetAllProgramsResponse, Branch, Program } from '@/components/types/types';
+import { Branch, Program } from '@/components/types/types';
+import { toast } from 'sonner';
 
 export default function BranchesPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [openDialog, setOpenDialog] = useState(false);
   const [editingBranch, setEditingBranch] = useState<any>(null);
+  const [deleteBranchId, setDeleteBranchId] = useState<string | null>(null);
 
   const { data: branchesData, isLoading: isBranchesLoading, refetch: refetchBranches } = notespitaraApi.useGetAllBranchesQuery({ page: 0, size: 20 });
   const { data: programsData, isLoading: isProgramsLoading } = notespitaraApi.useGetAllProgramsQuery({ page: 0, size: 100 });
+  const [deleteBranch, { isLoading: isDeleting }] = notespitaraApi.useDeleteBranchMutation();
 
   const typedBData = branchesData as any;
   const typedPData = programsData as any;
@@ -32,6 +36,18 @@ export default function BranchesPage() {
 
   const handleAddSuccess = () => {
     refetchBranches();
+  };
+
+  const handleDelete = async (id: string) => {
+    try {
+      await deleteBranch({ id }).unwrap();
+      toast.success('Branch deleted successfully');
+      setDeleteBranchId(null);
+      refetchBranches();
+    } catch (error) {
+      console.error('Error deleting branch:', error);
+      toast.error('Failed to delete branch');
+    }
   };
 
   if (isBranchesLoading || isProgramsLoading) {
@@ -59,7 +75,8 @@ export default function BranchesPage() {
 
         <div className="px-6">
           <div className="bg-card border border-border rounded-lg overflow-hidden">
-            <table className="w-full">
+            <div className="overflow-x-auto">
+            <table className="min-w-[760px] w-full">
               <thead>
                 <tr className="border-b border-border bg-muted/50">
                   <th className="px-6 py-3 text-left text-sm font-semibold text-foreground">Name</th>
@@ -107,21 +124,29 @@ export default function BranchesPage() {
                         >
                           <Edit2 className="h-4 w-4" />
                         </Button>
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          className="text-destructive hover:text-destructive"
-                          onClick={() => console.log('Delete', branch.id)}
-                          title="Delete branch"
+                        <ConfirmDeletePopover
+                          open={deleteBranchId === branch.id}
+                          onOpenChange={(open) => setDeleteBranchId(open ? branch.id : null)}
+                          onConfirm={() => handleDelete(branch.id)}
+                          isLoading={isDeleting && deleteBranchId === branch.id}
+                          title="Delete this branch?"
                         >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            className="text-destructive hover:text-destructive"
+                            title="Delete branch"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </ConfirmDeletePopover>
                       </div>
                     </td>
                   </tr>
                 ))}
               </tbody>
             </table>
+            </div>
 
             {filteredBranches.length === 0 && (
               <div className="p-8 text-center text-muted-foreground">

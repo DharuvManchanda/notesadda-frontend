@@ -2,15 +2,22 @@
 
 import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { notespitaraApi } from '@/store/services/notespitara';
 import type { VerifyEmailOtpRequest, ResendEmailOtpRequest } from '@/store/services/notespitara';
 import { toast } from 'sonner';
 import { ArrowLeft } from 'lucide-react';
+import {
+  clearPersistedAuthRedirectPath,
+  getSafeRedirectPath,
+  persistAuthRedirectPath,
+  readPersistedAuthRedirectPath,
+} from '@/lib/auth-redirect';
 
 export function OTPVerifyForm({ purpose = 'signup' }: { purpose?: 'signup' | 'reset' }) {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [timeLeft, setTimeLeft] = useState(0);
   const [canResend, setCanResend] = useState(false);
   const [resendCooldown, setResendCooldown] = useState(0);
@@ -35,6 +42,7 @@ export function OTPVerifyForm({ purpose = 'signup' }: { purpose?: 'signup' | 're
 
   // Load email from localStorage
   useEffect(() => {
+    persistAuthRedirectPath(searchParams.get('redirect'));
     const emailKey = purpose === 'signup' ? 'signup_email' : 'reset_email';
     const email = localStorage.getItem(emailKey);
     if (email) {
@@ -44,7 +52,7 @@ export function OTPVerifyForm({ purpose = 'signup' }: { purpose?: 'signup' | 're
       toast.error('Email not found. Please try again.');
       router.push(purpose === 'signup' ? '/auth/signup' : '/auth/forgot-password');
     }
-  }, [purpose, router, setValue]);
+  }, [purpose, router, setValue, searchParams]);
 
   // For signup, use API to track status
   const { data: signupStatus, refetch: refetchSignupStatus, isFetching: isStatusFetching } = notespitaraApi.useGetSignupStatusQuery(
@@ -62,7 +70,9 @@ export function OTPVerifyForm({ purpose = 'signup' }: { purpose?: 'signup' | 're
         if (signupStatus.status === 'AVAILABLE') {
           toast.error('OTP session expired. Please sign up again.');
           localStorage.removeItem('signup_email');
-          router.push('/auth/signup');
+          router.push(
+            `/auth/signup?redirect=${encodeURIComponent(readPersistedAuthRedirectPath())}`,
+          );
         } else if (signupStatus.status === 'PENDING_VERIFICATION') {
           setTimeLeft(signupStatus.otpExpiresInSeconds ?? 0);
           setResendCooldown(signupStatus.resendCooldownSeconds ?? 0);
@@ -70,7 +80,9 @@ export function OTPVerifyForm({ purpose = 'signup' }: { purpose?: 'signup' | 're
         } else if (signupStatus.status === 'ALREADY_REGISTERED') {
           toast.error('This email is already registered.');
           localStorage.removeItem('signup_email');
-          router.push('/auth/signin');
+          router.push(
+            `/auth/signin?redirect=${encodeURIComponent(readPersistedAuthRedirectPath())}`,
+          );
         }
       }
     } else {
@@ -124,7 +136,9 @@ export function OTPVerifyForm({ purpose = 'signup' }: { purpose?: 'signup' | 're
       if (purpose === 'reset') localStorage.removeItem('reset_time');
 
       if (purpose === 'signup') {
-        router.push('/auth/signin'); // Redirecting to sign in after successful signup verify
+        router.push(
+          `/auth/signin?redirect=${encodeURIComponent(readPersistedAuthRedirectPath())}`,
+        );
       } else {
         router.push('/auth/forgot-password/reset');
       }
@@ -168,6 +182,7 @@ export function OTPVerifyForm({ purpose = 'signup' }: { purpose?: 'signup' | 're
   const handleCancelSignup = () => {
     localStorage.removeItem(purpose === 'signup' ? 'signup_email' : 'reset_email');
     if (purpose === 'reset') localStorage.removeItem('reset_time');
+    clearPersistedAuthRedirectPath();
     toast.info('Verification cancelled.');
     router.push('/');
   };

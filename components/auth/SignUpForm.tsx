@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { Eye, EyeOff } from 'lucide-react';
 import { toast } from 'sonner';
@@ -10,9 +10,15 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { notespitaraApi } from '@/store/services/notespitara';
 import type { SignupRequest } from '@/store/services/notespitara';
+import {
+  getSafeRedirectPath,
+  persistAuthRedirectPath,
+  readPersistedAuthRedirectPath,
+} from '@/lib/auth-redirect';
 
 export function SignUpForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [showPassword, setShowPassword] = useState(false);
   const [registerUser, { isLoading: isRegistering }] =
     notespitaraApi.useRegisterUserMutation();
@@ -20,7 +26,8 @@ export function SignUpForm() {
 
   useEffect(() => {
     setActiveEmail(localStorage.getItem('signup_email'));
-  }, []);
+    persistAuthRedirectPath(searchParams.get('redirect'));
+  }, [searchParams]);
 
   const { data: signupStatus, isLoading: isStatusLoading } =
     notespitaraApi.useGetSignupStatusQuery(
@@ -35,7 +42,9 @@ export function SignUpForm() {
 
     if (signupStatus.status === 'PENDING_VERIFICATION') {
       toast.info('You have a pending signup. Please verify your email.');
-      router.push('/auth/signup/otp');
+      router.push(
+        `/auth/signup/otp?redirect=${encodeURIComponent(readPersistedAuthRedirectPath())}`,
+      );
       return;
     }
 
@@ -49,7 +58,9 @@ export function SignUpForm() {
       toast.error('This email is already registered.');
       localStorage.removeItem('signup_email');
       setActiveEmail(null);
-      router.push('/auth/signin');
+      router.push(
+        `/auth/signin?redirect=${encodeURIComponent(readPersistedAuthRedirectPath())}`,
+      );
     }
   }, [activeEmail, signupStatus, router]);
 
@@ -64,7 +75,9 @@ export function SignUpForm() {
       await registerUser({ signupRequest: data }).unwrap();
       toast.success('Signup successful! Check your email for OTP.');
       localStorage.setItem('signup_email', data.email);
-      router.push('/auth/signup/otp');
+      router.push(
+        `/auth/signup/otp?redirect=${encodeURIComponent(readPersistedAuthRedirectPath())}`,
+      );
     } catch (error: any) {
       const message = error?.data?.message || error?.message || 'Signup failed';
       toast.error(message);
@@ -171,7 +184,14 @@ export function SignUpForm() {
 
       <p className="text-center text-sm text-muted-foreground">
         Already have an account?{' '}
-        <Link href="/auth/signin" className="font-medium text-primary hover:underline">
+        <Link
+          href={`/auth/signin?redirect=${encodeURIComponent(
+            getSafeRedirectPath(
+              searchParams.get('redirect') || readPersistedAuthRedirectPath(),
+            ),
+          )}`}
+          className="font-medium text-primary hover:underline"
+        >
           Sign In
         </Link>
       </p>

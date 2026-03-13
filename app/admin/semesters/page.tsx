@@ -8,16 +8,20 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Edit2, Trash2, Eye } from 'lucide-react';
 import { PageLoader } from '@/components/ui/PageLoader';
+import { ConfirmDeletePopover } from '@/components/shared/ConfirmDeletePopover';
 import { notespitaraApi } from '@/store/services/notespitara';
-import { GetAllSemestersResponse, GetAllBranchesResponse, Semester, Branch } from '@/components/types/types';
+import { Semester, Branch } from '@/components/types/types';
+import { toast } from 'sonner';
 
 export default function SemestersPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [openDialog, setOpenDialog] = useState(false);
   const [editingSemester, setEditingSemester] = useState<any>(null);
+  const [deleteSemesterId, setDeleteSemesterId] = useState<string | null>(null);
 
   const { data: semestersData, isLoading: isSemestersLoading, refetch: refetchSemesters } = notespitaraApi.useGetAllSemestersQuery({ page: 0, size: 20 });
   const { data: branchesData, isLoading: isBranchesLoading } = notespitaraApi.useGetAllBranchesQuery({ page: 0, size: 100 });
+  const [deleteSemester, { isLoading: isDeleting }] = notespitaraApi.useDeleteSemesterMutation();
 
   const typedSData = semestersData as any;
   const typedBData = branchesData as any;
@@ -32,6 +36,18 @@ export default function SemestersPage() {
 
   const handleAddSuccess = () => {
     refetchSemesters();
+  };
+
+  const handleDelete = async (id: string) => {
+    try {
+      await deleteSemester({ id }).unwrap();
+      toast.success('Semester deleted successfully');
+      setDeleteSemesterId(null);
+      refetchSemesters();
+    } catch (error) {
+      console.error('Error deleting semester:', error);
+      toast.error('Failed to delete semester');
+    }
   };
 
   if (isSemestersLoading || isBranchesLoading) {
@@ -59,7 +75,8 @@ export default function SemestersPage() {
 
         <div className="px-6">
           <div className="bg-card border border-border rounded-lg overflow-hidden">
-            <table className="w-full">
+            <div className="overflow-x-auto">
+            <table className="min-w-[680px] w-full">
               <thead>
                 <tr className="border-b border-border bg-muted/50">
                   <th className="px-6 py-3 text-left text-sm font-semibold text-foreground">Semester</th>
@@ -103,21 +120,29 @@ export default function SemestersPage() {
                         >
                           <Edit2 className="h-4 w-4" />
                         </Button>
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          className="text-destructive hover:text-destructive"
-                          onClick={() => console.log('Delete', sem.id)}
-                          title="Delete semester"
+                        <ConfirmDeletePopover
+                          open={deleteSemesterId === sem.id}
+                          onOpenChange={(open) => setDeleteSemesterId(open ? sem.id : null)}
+                          onConfirm={() => handleDelete(sem.id)}
+                          isLoading={isDeleting && deleteSemesterId === sem.id}
+                          title="Delete this semester?"
                         >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            className="text-destructive hover:text-destructive"
+                            title="Delete semester"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </ConfirmDeletePopover>
                       </div>
                     </td>
                   </tr>
                 ))}
               </tbody>
             </table>
+            </div>
 
             {filteredSemesters.length === 0 && (
               <div className="p-8 text-center text-muted-foreground">

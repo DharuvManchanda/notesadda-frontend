@@ -4,19 +4,10 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { Container } from '@/components/shared/Container';
 import { Button } from '@/components/ui/button';
-import { BookOpen, Upload, LayoutDashboard, LogOut, Menu, X } from 'lucide-react';
+import { Upload, LayoutDashboard, LogOut, Menu, X } from 'lucide-react';
 import { useAuth } from '@/components/auth/AuthContext';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from '@/components/ui/alert-dialog';
+import { ThemeToggle } from '@/components/ThemeToggle';
+import { LogoutConfirmButton } from '@/components/auth/LogoutConfirmButton';
 
 export function Header() {
   const { isAuthenticated, user, logout, isAdmin } = useAuth();
@@ -26,16 +17,22 @@ export function Header() {
     <header className="sticky top-0 z-50 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <Container>
         <div className="flex min-h-16 items-center justify-between gap-3 py-3">
-          <Link href="/" className="flex items-center gap-2 text-lg font-bold">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary">
-              <BookOpen className="h-5 w-5 text-primary-foreground" />
-            </div>
+          <Link href="/" className="flex items-center gap-3 text-lg font-bold">
+            <img
+              src="/notespitara.jpg"
+              alt="Notes Pitara logo"
+              className="h-9 w-9 rounded-lg object-cover"
+            />
             <span className="hidden sm:inline">Notes Pitara</span>
           </Link>
 
           <nav className="hidden items-center gap-4 md:flex lg:gap-6">
+            <ThemeToggle />
             <Link href="/explore" className="text-sm font-medium transition-colors hover:text-primary">
               Explore
+            </Link>
+            <Link href="/about" className="text-sm font-medium transition-colors hover:text-primary">
+              About
             </Link>
             <Link href="/upload" className="flex items-center gap-1 text-sm font-medium transition-colors hover:text-primary">
               <Upload className="h-4 w-4" />
@@ -49,27 +46,15 @@ export function Header() {
             )}
 
             {isAuthenticated && user ? (
-              <AlertDialog>
-                <AlertDialogTrigger asChild>
-                  <Button variant="ghost" size="sm" className="flex items-center gap-1">
-                    <LogOut className="h-4 w-4" />
-                    <span>Logout</span>
-                  </Button>
-                </AlertDialogTrigger>
-                <AlertDialogContent>
-                  <AlertDialogHeader>
-                    <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-                    <AlertDialogDescription>
-                      This will log you out of your account. You will need to sign back in
-                      to access your profile and upload or manage notes.
-                    </AlertDialogDescription>
-                  </AlertDialogHeader>
-                  <AlertDialogFooter>
-                    <AlertDialogCancel>Cancel</AlertDialogCancel>
-                    <AlertDialogAction onClick={logout}>Log out</AlertDialogAction>
-                  </AlertDialogFooter>
-                </AlertDialogContent>
-              </AlertDialog>
+              <LogoutConfirmButton
+                onConfirm={logout}
+                description="This will log you out of your account. You will need to sign back in to access your profile and upload or manage notes."
+              >
+                <Button variant="ghost" size="sm" className="flex items-center gap-1">
+                  <LogOut className="h-4 w-4" />
+                  <span>Logout</span>
+                </Button>
+              </LogoutConfirmButton>
             ) : (
               <Link href="/auth/signin">
                 <Button variant="default" size="sm">
@@ -94,12 +79,22 @@ export function Header() {
         {mobileMenuOpen && (
           <div className="border-t py-3 md:hidden">
             <nav className="flex flex-col gap-2">
+              <div className="flex justify-end px-1">
+                <ThemeToggle />
+              </div>
               <Link
                 href="/explore"
                 className="rounded-lg px-3 py-3 text-sm font-medium transition-colors hover:bg-muted hover:text-primary"
                 onClick={() => setMobileMenuOpen(false)}
               >
                 Explore
+              </Link>
+              <Link
+                href="/about"
+                className="rounded-lg px-3 py-3 text-sm font-medium transition-colors hover:bg-muted hover:text-primary"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                About
               </Link>
               <Link
                 href="/upload"
@@ -121,27 +116,15 @@ export function Header() {
               )}
 
               {isAuthenticated && user ? (
-                <AlertDialog>
-                  <AlertDialogTrigger asChild>
-                    <Button variant="ghost" className="justify-start px-3 py-3">
-                      <LogOut className="h-4 w-4" />
-                      <span>Logout</span>
-                    </Button>
-                  </AlertDialogTrigger>
-                  <AlertDialogContent>
-                    <AlertDialogHeader>
-                      <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-                      <AlertDialogDescription>
-                        This will log you out of your account. You will need to sign back in
-                        to access your profile and upload or manage notes.
-                      </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                      <AlertDialogCancel>Cancel</AlertDialogCancel>
-                      <AlertDialogAction onClick={logout}>Log out</AlertDialogAction>
-                    </AlertDialogFooter>
-                  </AlertDialogContent>
-                </AlertDialog>
+                <LogoutConfirmButton
+                  onConfirm={logout}
+                  description="This will log you out of your account. You will need to sign back in to access your profile and upload or manage notes."
+                >
+                  <Button variant="ghost" className="justify-start px-3 py-3">
+                    <LogOut className="h-4 w-4" />
+                    <span>Logout</span>
+                  </Button>
+                </LogoutConfirmButton>
               ) : (
                 <Link href="/auth/signin" onClick={() => setMobileMenuOpen(false)}>
                   <Button className="mt-2 w-full">Sign In</Button>

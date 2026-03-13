@@ -8,16 +8,20 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Edit2, Trash2, Eye } from 'lucide-react';
 import { PageLoader } from '@/components/ui/PageLoader';
+import { ConfirmDeletePopover } from '@/components/shared/ConfirmDeletePopover';
 import { notespitaraApi } from '@/store/services/notespitara';
-import { GetAllProgramsResponse, GetAllUniversitiesResponse, Program, University } from '@/components/types/types';
+import { Program, University } from '@/components/types/types';
+import { toast } from 'sonner';
 
 export default function ProgramsPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [openDialog, setOpenDialog] = useState(false);
   const [editingProgram, setEditingProgram] = useState<any>(null);
+  const [deleteProgramId, setDeleteProgramId] = useState<string | null>(null);
 
   const { data: programsData, isLoading: isProgramsLoading, refetch: refetchPrograms } = notespitaraApi.useGetAllProgramsQuery({ page: 0, size: 20 });
   const { data: universitiesData, isLoading: isUniversitiesLoading } = notespitaraApi.useGetAllUniversitiesQuery({ page: 0, size: 100 });
+  const [deleteProgram, { isLoading: isDeleting }] = notespitaraApi.useDeleteProgramMutation();
 
   const typedPData = programsData as any;
   const typedUData = universitiesData as any;
@@ -31,6 +35,18 @@ export default function ProgramsPage() {
 
   const handleAddSuccess = () => {
     refetchPrograms();
+  };
+
+  const handleDelete = async (id: string) => {
+    try {
+      await deleteProgram({ id }).unwrap();
+      toast.success('Program deleted successfully');
+      setDeleteProgramId(null);
+      refetchPrograms();
+    } catch (error) {
+      console.error('Error deleting program:', error);
+      toast.error('Failed to delete program');
+    }
   };
 
   if (isProgramsLoading || isUniversitiesLoading) {
@@ -58,7 +74,8 @@ export default function ProgramsPage() {
 
         <div className="px-6">
           <div className="bg-card border border-border rounded-lg overflow-hidden">
-            <table className="w-full">
+            <div className="overflow-x-auto">
+            <table className="min-w-[760px] w-full">
               <thead>
                 <tr className="border-b border-border bg-muted/50">
                   <th className="px-6 py-3 text-left text-sm font-semibold text-foreground">Name</th>
@@ -111,21 +128,29 @@ export default function ProgramsPage() {
                         >
                           <Edit2 className="h-4 w-4" />
                         </Button>
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          className="text-destructive hover:text-destructive"
-                          onClick={() => console.log('Delete', prog.id)}
-                          title="Delete program"
+                        <ConfirmDeletePopover
+                          open={deleteProgramId === prog.id}
+                          onOpenChange={(open) => setDeleteProgramId(open ? prog.id : null)}
+                          onConfirm={() => handleDelete(prog.id)}
+                          isLoading={isDeleting && deleteProgramId === prog.id}
+                          title="Delete this program?"
                         >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            className="text-destructive hover:text-destructive"
+                            title="Delete program"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </ConfirmDeletePopover>
                       </div>
                     </td>
                   </tr>
                 ))}
               </tbody>
             </table>
+            </div>
 
             {filteredPrograms.length === 0 && (
               <div className="p-8 text-center text-muted-foreground">

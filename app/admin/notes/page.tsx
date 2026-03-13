@@ -19,6 +19,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { RejectNoteForm } from '@/components/admin/forms/RejectNoteForm';
 import { EditNoteForm } from '@/components/admin/forms/EditNoteForm';
+import { AddNoteForm } from '@/components/admin/forms/AddNoteForm';
 import { toast } from 'sonner';
 
 const NOTES_PER_PAGE = 20;
@@ -33,13 +34,13 @@ const columns = [
 export default function NotesPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
+  const [isAddNoteOpen, setIsAddNoteOpen] = useState(false);
 
   // Queries
-  const { data: notesData, isLoading } = notespitaraApi.useGetAllNotesForAdminQuery({
+  const { data: notesData, isLoading, refetch } = notespitaraApi.useGetAllNotesForAdminQuery({
     page: currentPage - 1,
     size: NOTES_PER_PAGE,
-    q: searchTerm || undefined,
-  });
+  } as any);
 
   // Mutations
   const [approveNote, { isLoading: isApproving }] = notespitaraApi.useApproveNotesFromAdminReviewMutation();
@@ -85,7 +86,7 @@ export default function NotesPage() {
   }
 
   // Map backend response matching the AdminTable's expected column keys
-  const notesResponse: any = notesData?.data; // Fix: Access nested .data
+  const notesResponse: any = (notesData as any)?.data;
   const paginatedNotes = notesResponse?.content?.map((note: any) => ({
     id: note.id,
     title: note.title,
@@ -118,7 +119,7 @@ export default function NotesPage() {
           description={`Manage all uploaded notes (${totalElements} total)`}
           searchPlaceholder="Search notes..."
           onSearch={handleSearch}
-          onAdd={() => console.log('Add note')}
+          onAdd={() => setIsAddNoteOpen(true)}
           addButtonLabel="Add Note"
         />
 
@@ -195,6 +196,14 @@ export default function NotesPage() {
         noteId={actionNode?.id || null}
         initialTitle={actionNode?.note?.title}
         initialDescription={actionNode?.note?.description}
+      />
+
+      <AddNoteForm
+        open={isAddNoteOpen}
+        onOpenChange={setIsAddNoteOpen}
+        onSuccess={() => {
+          refetch();
+        }}
       />
     </AdminLayout>
   );

@@ -59,7 +59,8 @@ export default function SubjectsPage() {
 
         <div className="px-6">
           <div className="bg-card border border-border rounded-lg overflow-hidden">
-            <table className="w-full">
+            <div className="overflow-x-auto">
+            <table className="min-w-[860px] w-full">
               <thead>
                 <tr className="border-b border-border bg-muted/50">
                   <th className="px-6 py-3 text-left text-sm font-semibold text-foreground">Name</th>
@@ -128,6 +129,7 @@ export default function SubjectsPage() {
                 ))}
               </tbody>
             </table>
+            </div>
 
             {filteredSubjects.length === 0 && (
               <div className="p-8 text-center text-muted-foreground">
