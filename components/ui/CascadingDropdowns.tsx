@@ -122,7 +122,7 @@ export function CascadingDropdowns({
           <select
             value={selectedUniversityId}
             onChange={handleUniversityChange}
-            className="w-full border rounded-md p-2 focus:ring-2 focus:ring-primary"
+            className="w-full rounded-md border p-3 text-sm focus:ring-2 focus:ring-primary"
             disabled={uniLoading}
             required
           >
@@ -141,7 +141,7 @@ export function CascadingDropdowns({
           <select
             value={selectedProgramId}
             onChange={handleProgramChange}
-            className="w-full border rounded-md p-2 focus:ring-2 focus:ring-primary"
+            className="w-full rounded-md border p-3 text-sm focus:ring-2 focus:ring-primary"
             disabled={!selectedUniversityId || progLoading}
             required
           >
@@ -160,7 +160,7 @@ export function CascadingDropdowns({
           <select
             value={selectedBranchId}
             onChange={handleBranchChange}
-            className="w-full border rounded-md p-2 focus:ring-2 focus:ring-primary"
+            className="w-full rounded-md border p-3 text-sm focus:ring-2 focus:ring-primary"
             disabled={!selectedProgramId || branchLoading}
             required
           >
@@ -179,7 +179,7 @@ export function CascadingDropdowns({
           <select
             value={selectedSemesterId}
             onChange={handleSemesterChange}
-            className="w-full border rounded-md p-2 focus:ring-2 focus:ring-primary"
+            className="w-full rounded-md border p-3 text-sm focus:ring-2 focus:ring-primary"
             disabled={!selectedBranchId || semLoading}
             required
           >
@@ -198,7 +198,7 @@ export function CascadingDropdowns({
           <select
             value={selectedSubjectId}
             onChange={handleSubjectChange}
-            className="w-full border rounded-md p-2 focus:ring-2 focus:ring-primary"
+            className="w-full rounded-md border p-3 text-sm focus:ring-2 focus:ring-primary"
             disabled={!selectedSemesterId || subLoading}
             required
           >

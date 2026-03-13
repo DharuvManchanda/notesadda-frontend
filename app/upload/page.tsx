@@ -113,14 +113,14 @@ export default function UploadPage() {
   return (
     <ProtectedRoute>
       <main>
-        <Section className="pt-8 md:pt-12 lg:pt-16 pb-12 md:pb-16 lg:pb-20">
+        <Section className="pt-8 pb-12 md:pt-12 md:pb-16 lg:pt-16 lg:pb-20">
           <Container>
             <Breadcrumb items={[{ label: 'Home', href: '/' }, { label: 'Upload Notes' }]} />
 
-            <div className="max-w-2xl mx-auto mt-8">
-              <div className="text-center mb-12">
-                <h1 className="text-4xl md:text-5xl font-bold mb-4 text-balance">Upload Your Notes</h1>
-                <p className="text-lg text-muted-foreground">Share your study materials with the community</p>
+            <div className="mx-auto mt-6 max-w-2xl sm:mt-8">
+              <div className="mb-8 text-center sm:mb-12">
+                <h1 className="mb-4 text-3xl font-bold text-balance sm:text-4xl md:text-5xl">Upload Your Notes</h1>
+                <p className="text-base text-muted-foreground sm:text-lg">Share your study materials with the community</p>
               </div>
 
               <UploadStepIndicator currentStep={currentStep} steps={STEPS} />

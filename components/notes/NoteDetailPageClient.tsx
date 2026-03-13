@@ -103,20 +103,20 @@ export function NoteDetailPageClient({
         <Section>
           <Breadcrumb items={breadcrumbItems} />
 
-          <div className="mt-8 grid grid-cols-1 gap-8 lg:grid-cols-3">
+          <div className="mt-6 grid grid-cols-1 gap-6 lg:mt-8 lg:grid-cols-3 lg:gap-8">
             <div className="lg:col-span-2">
               <article className="space-y-8">
                 <div className="space-y-4">
-                  <div className="flex items-start justify-between gap-4">
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                     <div className="flex-1">
-                      <h1 className="mb-2 text-4xl font-bold text-balance">
+                      <h1 className="mb-2 text-3xl font-bold text-balance sm:text-4xl">
                         {note.title}
                       </h1>
-                      <p className="text-lg text-muted-foreground">
+                      <p className="text-base text-muted-foreground sm:text-lg">
                         {subject.name}
                       </p>
                     </div>
-                    <Badge variant="secondary" className="whitespace-nowrap">
+                    <Badge variant="secondary" className="w-fit whitespace-nowrap">
                       {note.fileType?.toUpperCase() ?? 'PDF'}
                     </Badge>
                   </div>
@@ -129,15 +129,15 @@ export function NoteDetailPageClient({
                   </p>
                 </div>
 
-                <div className="rounded-lg border border-border bg-card p-6">
+                <div className="rounded-lg border border-border bg-card p-4 sm:p-6">
                   <h3 className="mb-4 text-lg font-bold">Uploaded By</h3>
-                  <div className="flex items-start gap-4">
-                    <div className="flex h-16 w-16 flex-shrink-0 items-center justify-center rounded-full bg-primary/10">
+                  <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
+                    <div className="flex h-14 w-14 flex-shrink-0 items-center justify-center rounded-full bg-primary/10 sm:h-16 sm:w-16">
                       <User className="h-8 w-8 text-primary" />
                     </div>
-                    <div className="flex-1">
+                    <div className="min-w-0 flex-1">
                       <h4 className="text-lg font-bold">{uploaderName}</h4>
-                      <p className="mb-2 text-sm text-muted-foreground">
+                      <p className="mb-2 break-words text-sm text-muted-foreground">
                         {uploaderEmail}
                       </p>
                       <p className="text-sm">
@@ -161,7 +161,7 @@ export function NoteDetailPageClient({
             </div>
 
             <div className="space-y-6">
-              <div className="space-y-4 rounded-lg border border-border bg-card p-6">
+              <div className="space-y-4 rounded-lg border border-border bg-card p-4 sm:p-6">
                 <div className="flex h-40 items-center justify-center rounded-lg bg-muted">
                   <FileText className="h-16 w-16 text-muted-foreground" />
                 </div>

@@ -71,11 +71,11 @@ export default function SubjectPage({ params }: SubjectPageProps) {
           <Breadcrumb items={breadcrumbs} />
 
           <div className="mb-8">
-            <div className="mb-6 flex items-start gap-4">
+            <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-start">
               <div className="flex h-14 w-14 flex-shrink-0 items-center justify-center rounded-lg bg-secondary/10">
                 <BookMarked className="h-7 w-7 text-secondary" />
               </div>
-              <div>
+              <div className="min-w-0">
                 <PageHeader
                   title={subject.name}
                   subtitle={`${subject.code} • ${subject.notesCountTotal || 0} Study Notes`}
@@ -84,24 +84,24 @@ export default function SubjectPage({ params }: SubjectPageProps) {
               </div>
             </div>
 
-            <p className="mb-8 max-w-3xl text-lg text-muted-foreground">
+            <p className="mb-8 max-w-3xl text-base text-muted-foreground sm:text-lg">
               {subject.description}
             </p>
 
-            <div className="grid grid-cols-2 gap-4 text-sm md:grid-cols-4">
-              <div>
+            <div className="grid grid-cols-1 gap-4 text-sm sm:grid-cols-2 xl:grid-cols-4">
+              <div className="rounded-lg border border-border/60 bg-card/60 p-3">
                 <p className="text-muted-foreground">Subject Code</p>
                 <p className="font-semibold">{subject.code}</p>
               </div>
-              <div>
+              <div className="rounded-lg border border-border/60 bg-card/60 p-3">
                 <p className="text-muted-foreground">Semester</p>
                 <p className="font-semibold">{semesterStr}</p>
               </div>
-              <div>
+              <div className="rounded-lg border border-border/60 bg-card/60 p-3">
                 <p className="text-muted-foreground">Branch</p>
                 <p className="font-semibold">{formatSlug(branchSlug)}</p>
               </div>
-              <div>
+              <div className="rounded-lg border border-border/60 bg-card/60 p-3">
                 <p className="text-muted-foreground">Total Notes</p>
                 <p className="text-2xl font-bold text-accent">
                   {subject.notesCountTotal || 0}

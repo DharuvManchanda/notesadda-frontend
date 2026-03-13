@@ -11,11 +11,11 @@ interface PageHeaderProps {
 export function PageHeader({ title, subtitle, children, className }: PageHeaderProps) {
   return (
     <div className={cn('mb-8 md:mb-12', className)}>
-      <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-balance mb-2">
+      <h1 className="mb-2 text-2xl font-bold text-balance sm:text-3xl md:text-4xl lg:text-5xl">
         {title}
       </h1>
       {subtitle && (
-        <p className="text-lg text-muted-foreground text-pretty mb-6">
+        <p className="mb-6 text-base text-muted-foreground text-pretty sm:text-lg">
           {subtitle}
         </p>
       )}

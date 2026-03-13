@@ -123,7 +123,7 @@ export function SearchBar({
 
   return (
     <div ref={dropdownRef} className={cn('relative w-full max-w-md', className)}>
-      <form onSubmit={handleSearch} className="flex w-full gap-2">
+      <form onSubmit={handleSearch} className="flex w-full flex-col gap-2 sm:flex-row">
         <div className="relative flex-1">
           <Input
             type="text"
@@ -144,7 +144,7 @@ export function SearchBar({
           />
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
         </div>
-        <Button type="submit" variant="default">
+        <Button type="submit" variant="default" className="min-h-11 w-full sm:w-auto">
           Search
         </Button>
       </form>

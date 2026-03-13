@@ -61,11 +61,11 @@ export default function UniversityPage({ params }: UniversityPageProps) {
             />
 
             <div className="mb-8">
-              <div className="flex items-start gap-4 mb-6">
-                <div className="h-16 w-16 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+              <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-start">
+                <div className="flex h-14 w-14 items-center justify-center rounded-lg bg-primary/10 sm:h-16 sm:w-16">
                   <span className="text-2xl font-bold text-primary">{university.name.charAt(0)}</span>
                 </div>
-                <div>
+                <div className="min-w-0">
                   <PageHeader
                     title={university.name}
                     subtitle={university.description}

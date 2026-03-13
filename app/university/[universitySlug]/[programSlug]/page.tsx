@@ -60,24 +60,24 @@ export default function ProgramPage({ params }: ProgramPageProps) {
                 subtitle={program.description}
               />
 
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm mt-8">
-                <div className="flex items-center gap-2">
+              <div className="mt-8 grid grid-cols-1 gap-4 text-sm sm:grid-cols-2 lg:grid-cols-4">
+                <div className="flex items-start gap-2 rounded-lg border border-border/60 bg-card/60 p-3">
                   <Clock className="h-4 w-4 text-primary" />
                   <div>
                     <p className="text-muted-foreground">Type</p>
                     <p className="font-semibold">{program.type}</p>
                   </div>
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex items-start gap-2 rounded-lg border border-border/60 bg-card/60 p-3">
                   <BookMarked className="h-4 w-4 text-primary" />
                   <div>
                     <p className="text-muted-foreground">Branches</p>
                     <p className="font-semibold">{program.branchesCountTotal || 0}</p>
                   </div>
                 </div>
-                <div>
+                <div className="rounded-lg border border-border/60 bg-card/60 p-3">
                   <p className="text-muted-foreground">University</p>
-                  <p className="font-semibold">{formatSlug(universitySlug)}</p>
+                  <p className="break-words font-semibold">{formatSlug(universitySlug)}</p>
                 </div>
                 {/* <div>
                   <p className="text-muted-foreground">Total Notes</p>

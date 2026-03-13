@@ -53,11 +53,11 @@ export default function BranchPage({ params }: BranchPageProps) {
             <Breadcrumb items={breadcrumbs} />
 
             <div className="mb-8">
-              <div className="flex items-start gap-4 mb-6">
-                <div className="h-14 w-14 rounded-lg bg-accent/10 flex items-center justify-center flex-shrink-0">
+              <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-start">
+                <div className="flex h-14 w-14 flex-shrink-0 items-center justify-center rounded-lg bg-accent/10">
                   <Zap className="h-7 w-7 text-accent" />
                 </div>
-                <div>
+                <div className="min-w-0">
                   <PageHeader
                     title={branch.name}
                     subtitle={branch.description}

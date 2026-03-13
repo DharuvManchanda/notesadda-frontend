@@ -32,31 +32,31 @@ export function AdminTable({
 }: AdminTableProps) {
   return (
     <div className="overflow-x-auto">
-      <table className="w-full text-sm">
+      <table className="w-full min-w-[720px] text-sm">
         <thead className="bg-muted/50 border-b border-border">
           <tr>
             {columns.map((column) => (
               <th
                 key={column.key}
-                className="px-6 py-3 text-left font-semibold"
+                className="px-4 py-3 text-left font-semibold sm:px-6"
                 style={column.width ? { width: column.width } : undefined}
               >
                 {column.label}
               </th>
             ))}
-            <th className="px-6 py-3 text-left font-semibold">Actions</th>
+            <th className="px-4 py-3 text-left font-semibold sm:px-6">Actions</th>
           </tr>
         </thead>
         <tbody className="divide-y divide-border">
           {data.map((row) => (
             <tr key={row.id} className="hover:bg-muted/50 transition-colors">
               {columns.map((column) => (
-                <td key={`${row.id}-${column.key}`} className="px-6 py-3 text-foreground">
+                <td key={`${row.id}-${column.key}`} className="px-4 py-3 text-foreground sm:px-6">
                   {row[column.key]}
                 </td>
               ))}
-              <td className="px-6 py-3">
-                <div className="flex gap-2">
+              <td className="px-4 py-3 sm:px-6">
+                <div className="flex flex-wrap gap-2">
    {onView && row.viewUrl && (
                     <Button
                       size="sm"

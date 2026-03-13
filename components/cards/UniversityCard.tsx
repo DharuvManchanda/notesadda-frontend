@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { MapPin, BookMarked, FileText } from 'lucide-react';
+import { MapPin, BookMarked } from 'lucide-react';
 import type { UniversitySummary } from '@/lib/api-types';
 
 interface UniversityCardProps {
@@ -10,38 +10,32 @@ interface UniversityCardProps {
 export function UniversityCard({ university }: UniversityCardProps) {
   return (
     <Link href={`/university/${university.slug}`}>
-      <div className="h-full p-6 rounded-xl bg-card border border-border hover:border-primary hover:shadow-md transition-all duration-300 cursor-pointer group">
-        <div className="flex items-start justify-between mb-4">
-          <div className="h-12 w-12 rounded-lg bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
+      <div className="group h-full cursor-pointer rounded-xl border border-border bg-card p-4 transition-all duration-300 hover:border-primary hover:shadow-md sm:p-6">
+        <div className="mb-4 flex items-start justify-between gap-3">
+          <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-lg bg-primary/10 transition-colors group-hover:bg-primary/20 sm:h-12 sm:w-12">
             <BookMarked className="h-6 w-6 text-primary" />
           </div>
-          <span className="text-xs font-semibold px-2 py-1 rounded-full bg-secondary/20 text-secondary-foreground">
+          <span className="shrink-0 rounded-full bg-secondary/20 px-2 py-1 text-[11px] font-semibold text-secondary-foreground sm:text-xs">
             {university.programsCountTotal || 0} Programs
           </span>
         </div>
 
-        <h3 className="text-lg font-bold mb-2 line-clamp-2 group-hover:text-primary transition-colors">
+        <h3 className="mb-2 line-clamp-2 text-base font-bold transition-colors group-hover:text-primary sm:text-lg">
           {university.name}
         </h3>
 
-        <div className="flex items-center gap-1 text-sm text-muted-foreground mb-4">
-          <MapPin className="h-4 w-4" />
-          <span>{university.city ? `${university.city}, ${university.state}` : 'Location unknown'}</span>
+        <div className="mb-4 flex items-start gap-1 text-sm text-muted-foreground">
+          <MapPin className="mt-0.5 h-4 w-4 flex-shrink-0" />
+          <span className="break-words">
+            {university.city ? `${university.city}, ${university.state}` : 'Location unknown'}
+          </span>
         </div>
 
-        <p className="text-sm text-muted-foreground mb-4 line-clamp-2">
+        <p className="mb-4 line-clamp-3 text-sm text-muted-foreground">
           {university.description}
         </p>
 
-        {/* <div className="flex items-center gap-4 text-sm mb-4">
-          <div className="flex items-center gap-1">
-            <FileText className="h-4 w-4 text-accent" />
-            <span className="text-muted-foreground">{university.totalNotes.toLocaleString()} Notes</span>
-          </div>
-          <div className="text-xs text-muted-foreground">Est. {university.foundedYear}</div>
-        </div> */}
-
-        <Button variant="outline" size="sm" className="w-full">
+        <Button variant="outline" size="sm" className="min-h-10 w-full">
           Explore Programs
         </Button>
       </div>

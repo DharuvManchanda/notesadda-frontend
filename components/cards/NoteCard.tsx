@@ -33,9 +33,9 @@ export function NoteCard({
 
   return (
     <Link href={href}>
-      <div className="group h-full cursor-pointer rounded-xl border border-border bg-card p-6 transition-all duration-300 hover:border-primary hover:shadow-md">
+      <div className="group h-full cursor-pointer rounded-xl border border-border bg-card p-4 transition-all duration-300 hover:border-primary hover:shadow-md sm:p-6">
         <div className="mb-4 flex items-start justify-between">
-          <div className="mr-4 flex-1">
+          <div className="min-w-0 flex-1">
             <Badge variant="secondary" className="mb-2">
               {note.fileType?.toUpperCase() || 'PDF'}
             </Badge>
@@ -49,12 +49,12 @@ export function NoteCard({
           {note.description}
         </p>
 
-        <div className="mb-4 flex items-center gap-2 border-b pb-4 text-xs text-muted-foreground">
-          <User className="h-3 w-3" />
-          <span className="font-medium">
+        <div className="mb-4 flex flex-wrap items-center gap-2 border-b pb-4 text-xs text-muted-foreground">
+          <User className="h-3 w-3 flex-shrink-0" />
+          <span className="min-w-0 truncate font-medium">
             {note.uploaderName || note.user?.name || note.uploadedBy?.name || 'Unknown'}
           </span>
-          <span className="text-muted-foreground/60">•</span>
+          <span className="hidden text-muted-foreground/60 sm:inline">•</span>
           <span>
             {note.createdAt
               ? formatDistanceToNow(new Date(note.createdAt), { addSuffix: true })
@@ -62,7 +62,7 @@ export function NoteCard({
           </span>
         </div>
 
-        <Button variant="outline" size="sm" className="w-full">
+        <Button variant="outline" size="sm" className="min-h-10 w-full">
           View Note
         </Button>
       </div>

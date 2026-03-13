@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { BookOpen, FileText } from 'lucide-react';
+import { BookOpen } from 'lucide-react';
 
 interface SemesterCardProps {
   semester: any;
@@ -12,23 +12,22 @@ interface SemesterCardProps {
 export function SemesterCard({ semester, universitySlug, programSlug, branchSlug }: SemesterCardProps) {
   return (
     <Link href={`/university/${universitySlug}/${programSlug}/${branchSlug}/semester-${semester.number}`}>
-      <div className="p-6 rounded-xl bg-card border border-border hover:border-primary hover:shadow-md transition-all duration-300 cursor-pointer group">
-        <div className="flex items-center justify-between mb-4">
-          <div className="h-12 w-12 rounded-lg bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
+      <div className="group rounded-xl border border-border bg-card p-4 transition-all duration-300 hover:border-primary hover:shadow-md sm:p-6">
+        <div className="mb-4 flex items-center justify-between">
+          <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-primary/10 transition-colors group-hover:bg-primary/20 sm:h-12 sm:w-12">
             <BookOpen className="h-6 w-6 text-primary" />
           </div>
         </div>
 
-        <h3 className="text-2xl font-bold mb-1 group-hover:text-primary transition-colors">
+        <h3 className="mb-1 text-xl font-bold transition-colors group-hover:text-primary sm:text-2xl">
           Semester {semester.number}
         </h3>
 
-        <p className="text-sm text-muted-foreground mb-4">
-          {semester.subjectsCountTotal || 0} Subjects 
-          {/* • {semester.totalNotes} Notes */}
+        <p className="mb-4 text-sm text-muted-foreground">
+          {semester.subjectsCountTotal || 0} Subjects
         </p>
 
-        <Button variant="outline" size="sm" className="w-full">
+        <Button variant="outline" size="sm" className="min-h-10 w-full">
           View Subjects
         </Button>
       </div>

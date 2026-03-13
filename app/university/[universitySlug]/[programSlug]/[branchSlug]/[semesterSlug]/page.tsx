@@ -67,11 +67,11 @@ export default function SemesterPage({ params }: SemesterPageProps) {
             <Breadcrumb items={breadcrumbs} />
 
             <div className="mb-8">
-              <div className="flex items-start gap-4 mb-6">
-                <div className="h-14 w-14 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+              <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-start">
+                <div className="flex h-14 w-14 flex-shrink-0 items-center justify-center rounded-lg bg-primary/10">
                   <BookOpen className="h-7 w-7 text-primary" />
                 </div>
-                <div>
+                <div className="min-w-0">
                   <PageHeader
                     title={`Semester ${semester.number || semesterStr}`}
                     subtitle={`${semester.subjectsCountTotal || 0} Subjects`}
