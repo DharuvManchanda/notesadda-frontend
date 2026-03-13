@@ -18,7 +18,7 @@ import {
 } from '@/components/ui/alert-dialog';
 
 export function Header() {
-  const { isAuthenticated, user, logout } = useAuth();
+  const { isAuthenticated, user, logout, isAdmin } = useAuth();
 
   return (
     <header className="sticky top-0 z-50 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -43,10 +43,12 @@ export function Header() {
               <User className="h-4 w-4" />
               <span className="hidden sm:inline">Profile</span>
             </Link> */}
-            <Link href="/admin" className="flex items-center gap-1 text-sm font-medium hover:text-primary transition-colors">
-              <LayoutDashboard className="h-4 w-4" />
-              <span className="hidden sm:inline">Admin</span>
-            </Link>
+            {isAdmin && (
+              <Link href="/admin" className="flex items-center gap-1 text-sm font-medium hover:text-primary transition-colors">
+                <LayoutDashboard className="h-4 w-4" />
+                <span className="hidden sm:inline">Admin</span>
+              </Link>
+            )}
 
             {isAuthenticated && user ? (
               <div className="flex items-center gap-3">

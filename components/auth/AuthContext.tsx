@@ -11,6 +11,7 @@ interface AuthContextType {
   isAuthenticated: boolean;
   logout: () => void;
   isAuthLoading: boolean;
+  isAdmin: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -52,11 +53,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     dispatch(notespitaraApi.util.resetApiState());
   }, [dispatch, signoutUser]);
 
+  const isAdmin = user?.roles?.some(
+    (role) => role === 'ROLE_UNIVERSITY_ADMIN' || role === 'ROLE_SUPER_ADMIN'
+  ) ?? false;
+
   const value: AuthContextType = {
     user,
     isAuthenticated,
     logout,
     isAuthLoading: isLoading,
+    isAdmin,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

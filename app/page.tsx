@@ -41,13 +41,16 @@ export default function HomePage() {
                       Explore Notes
                     </Button>
                   </Link>
-                  <Button
+                    <Link href="/upload">
+                    <Button
                     variant="outline"
                     size="lg"
                     className="w-full sm:w-auto"
                   >
                     Upload Notes
                   </Button>
+                  </Link>
+                  
                 </div>
 
                 <div className="flex justify-center mb-12">
@@ -97,12 +100,6 @@ export default function HomePage() {
             </div>
 
             <FeaturedUniversities />
-
-            <div className="text-center">
-              <Link href="/explore">
-                <Button variant="outline">View All Universities</Button>
-              </Link>
-            </div>
           </Container>
         </Section>
 
