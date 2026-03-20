@@ -129,28 +129,15 @@ export default function HomePage() {
 
       <Section className="bg-muted/40 py-12 md:py-16">
         <Container>
-          <div className="mx-auto max-w-3xl text-center">
-            <h2 className="mb-4 text-3xl font-bold md:text-4xl">How It Works</h2>
+          <div className="mb-12">
+            <h2 className="mb-3 text-3xl font-bold md:text-4xl">Featured Universities</h2>
             <p className="text-muted-foreground">
-              Find the right subject faster, discover reliable notes, and contribute
-              to a shared academic knowledge base.
+              Explore academic content from institutions where students actively contribute
+              and share knowledge.
             </p>
           </div>
 
-          <div className="mt-12 grid grid-cols-1 gap-6 md:grid-cols-3">
-            {howItWorks.map((item) => {
-              const Icon = item.icon;
-              return (
-                <div key={item.title} className="rounded-2xl border bg-card p-6">
-                  <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-primary/10">
-                    <Icon className="h-7 w-7 text-primary" />
-                  </div>
-                  <h3 className="mb-3 text-xl font-bold">{item.title}</h3>
-                  <p className="text-sm leading-6 text-muted-foreground">{item.description}</p>
-                </div>
-              );
-            })}
-          </div>
+          <FeaturedUniversities />
         </Container>
       </Section>
 
@@ -181,15 +168,28 @@ export default function HomePage() {
 
       <Section className="bg-muted/40 py-12 md:py-16">
         <Container>
-          <div className="mb-12">
-            <h2 className="mb-3 text-3xl font-bold md:text-4xl">Featured Universities</h2>
+          <div className="mx-auto max-w-3xl text-center">
+            <h2 className="mb-4 text-3xl font-bold md:text-4xl">How It Works</h2>
             <p className="text-muted-foreground">
-              Explore academic content from institutions where students actively contribute
-              and share knowledge.
+              Find the right subject faster, discover reliable notes, and contribute
+              to a shared academic knowledge base.
             </p>
           </div>
 
-          <FeaturedUniversities />
+          <div className="mt-12 grid grid-cols-1 gap-6 md:grid-cols-3">
+            {howItWorks.map((item) => {
+              const Icon = item.icon;
+              return (
+                <div key={item.title} className="rounded-2xl border bg-card p-6">
+                  <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-primary/10">
+                    <Icon className="h-7 w-7 text-primary" />
+                  </div>
+                  <h3 className="mb-3 text-xl font-bold">{item.title}</h3>
+                  <p className="text-sm leading-6 text-muted-foreground">{item.description}</p>
+                </div>
+              );
+            })}
+          </div>
         </Container>
       </Section>
 

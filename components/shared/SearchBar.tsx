@@ -16,7 +16,7 @@ interface SearchBarProps {
 }
 
 export function SearchBar({
-  placeholder = 'Search notes, subjects, programs...',
+  placeholder = 'Search notes by subject or topic...',
   onSearch,
   className,
 }: SearchBarProps) {

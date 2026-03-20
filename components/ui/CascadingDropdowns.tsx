@@ -113,16 +113,21 @@ export function CascadingDropdowns({
     onSubjectChange?.(e.target.value);
   };
 
+  const selectClassName =
+    'w-full rounded-md border border-border bg-background px-3 py-3 text-sm text-foreground shadow-sm focus:outline-none focus:ring-2 focus:ring-primary disabled:cursor-not-allowed disabled:bg-muted disabled:text-muted-foreground';
+
+  const labelClassName = 'mb-1 block text-sm font-medium text-foreground';
+
   return (
     <div className="space-y-4">
       {/* Level 1: University */}
       {['UNIVERSITY', 'PROGRAM', 'BRANCH', 'SEMESTER', 'SUBJECT'].includes(level) && (
         <div>
-          <label className="block text-sm font-medium mb-1">Select University *</label>
+          <label className={labelClassName}>Select University *</label>
           <select
             value={selectedUniversityId}
             onChange={handleUniversityChange}
-            className="w-full rounded-md border p-3 text-sm focus:ring-2 focus:ring-primary"
+            className={selectClassName}
             disabled={uniLoading}
             required
           >
@@ -137,11 +142,11 @@ export function CascadingDropdowns({
       {/* Level 2: Program */}
       {['PROGRAM', 'BRANCH', 'SEMESTER', 'SUBJECT'].includes(level) && (
         <div>
-          <label className="block text-sm font-medium mb-1">Select Program *</label>
+          <label className={labelClassName}>Select Program *</label>
           <select
             value={selectedProgramId}
             onChange={handleProgramChange}
-            className="w-full rounded-md border p-3 text-sm focus:ring-2 focus:ring-primary"
+            className={selectClassName}
             disabled={!selectedUniversityId || progLoading}
             required
           >
@@ -156,11 +161,11 @@ export function CascadingDropdowns({
       {/* Level 3: Branch */}
       {['BRANCH', 'SEMESTER', 'SUBJECT'].includes(level) && (
         <div>
-          <label className="block text-sm font-medium mb-1">Select Branch *</label>
+          <label className={labelClassName}>Select Branch *</label>
           <select
             value={selectedBranchId}
             onChange={handleBranchChange}
-            className="w-full rounded-md border p-3 text-sm focus:ring-2 focus:ring-primary"
+            className={selectClassName}
             disabled={!selectedProgramId || branchLoading}
             required
           >
@@ -175,11 +180,11 @@ export function CascadingDropdowns({
       {/* Level 4: Semester */}
       {['SEMESTER', 'SUBJECT'].includes(level) && (
         <div>
-          <label className="block text-sm font-medium mb-1">Select Semester *</label>
+          <label className={labelClassName}>Select Semester *</label>
           <select
             value={selectedSemesterId}
             onChange={handleSemesterChange}
-            className="w-full rounded-md border p-3 text-sm focus:ring-2 focus:ring-primary"
+            className={selectClassName}
             disabled={!selectedBranchId || semLoading}
             required
           >
@@ -194,11 +199,11 @@ export function CascadingDropdowns({
       {/* Level 5: Subject */}
       {['SUBJECT'].includes(level) && (
         <div>
-          <label className="block text-sm font-medium mb-1">Select Subject *</label>
+          <label className={labelClassName}>Select Subject *</label>
           <select
             value={selectedSubjectId}
             onChange={handleSubjectChange}
-            className="w-full rounded-md border p-3 text-sm focus:ring-2 focus:ring-primary"
+            className={selectClassName}
             disabled={!selectedSemesterId || subLoading}
             required
           >
