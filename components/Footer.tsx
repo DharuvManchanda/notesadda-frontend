@@ -98,10 +98,10 @@ export function Footer() {
             {/* <Link href="/" className="hover:text-foreground transition-colors">
               Twitter
             </Link> */}
-            <Link href="/" className="hover:text-foreground transition-colors">
+            <Link href="https://www.instagram.com/notespitara?igsh=MXdobnFrd2xxZWF6aw==" target="_blank" rel="noopener noreferrer" className="hover:text-foreground transition-colors">
               Instagram
             </Link>
-            <Link href="/" className="hover:text-foreground transition-colors">
+            <Link href="https://www.linkedin.com/in/notespitara" target="_blank" rel="noopener noreferrer" className="hover:text-foreground transition-colors">
               LinkedIn
             </Link>
           <p>&copy; {new Date().getFullYear()} All rights reserved.</p>          </div>

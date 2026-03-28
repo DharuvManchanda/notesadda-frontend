@@ -9,6 +9,7 @@ import { ReviewStep } from '@/components/upload/ReviewStep';
 import { UploadSuccessScreen } from '@/components/upload/UploadSuccessScreen';
 import { UploadNavigationButtons } from '@/components/upload/UploadNavigationButtons';
 import { notespitaraApi } from '@/store/services/notespitara';
+import { useToast } from '@/hooks/use-toast';
 
 const STEPS = [
   { number: 1, label: 'Select Course' },
@@ -49,35 +50,75 @@ export function UploadNoteWizard({
   });
   const [file, setFile] = useState<File | null>(null);
   const [error, setError] = useState('');
+  const { toast } = useToast();
   const [uploadPdf, { isLoading: isUploading }] = notespitaraApi.useUploadPdfMutation();
+
+  const handleFileChange = (selectedFile: File | null) => {
+    if (selectedFile) {
+      if (selectedFile.size > MAX_FILE_SIZE_BYTES) {
+        const msg = "File size exceeds 10MB. You can't upload files above 10MB.";
+        setError(msg);
+        toast({
+          title: "File too large",
+          description: msg,
+          variant: "destructive",
+        });
+        setFile(null);
+        return;
+      }
+      const isPdfFile =
+        selectedFile.type === 'application/pdf' || selectedFile.name.toLowerCase().endsWith('.pdf');
+
+      if (!isPdfFile) {
+        const msg = 'Only PDF files are allowed';
+        setError(msg);
+        toast({
+          title: "Invalid file type",
+          description: msg,
+          variant: "destructive",
+        });
+        setFile(null);
+        return;
+      }
+    }
+    setFile(selectedFile);
+    setError('');
+  };
 
   const validateStep = (step: number): boolean => {
     if (step === 1) {
       if (!selectedUniversity || !selectedProgram || !selectedBranch || !selectedSemester || !selectedSubject) {
-        setError('Please select all fields');
+        const msg = 'Please select all fields';
+        setError(msg);
+        toast({
+          title: "Selection required",
+          description: msg,
+          variant: "destructive",
+        });
         return false;
       }
     } else if (step === 2) {
       if (!file) {
-        setError('Please upload a PDF file');
-        return false;
-      }
-
-      const isPdfFile =
-        file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf');
-
-      if (!isPdfFile) {
-        setError('Only PDF files are allowed');
-        return false;
-      }
-
-      if (file.size > MAX_FILE_SIZE_BYTES) {
-        setError('File size must be 10MB or less');
+        if (!error) {
+          const msg = "Please upload a PDF file (Maximum 10MB allowed).";
+          setError(msg);
+          toast({
+            title: "File required",
+            description: msg,
+            variant: "destructive",
+          });
+        }
         return false;
       }
 
       if (!formData.title || !formData.description) {
-        setError('Please fill in all required fields');
+        const msg = 'Please fill in all required fields';
+        setError(msg);
+        toast({
+          title: "Incomplete details",
+          description: msg,
+          variant: "destructive",
+        });
         return false;
       }
     }
@@ -112,10 +153,20 @@ export function UploadNoteWizard({
         body: payload as any,
       }).unwrap();
 
+      toast({
+        title: "Upload Successful",
+        description: "Your notes have been shared with the community.",
+      });
       onUploadSuccess?.();
       setCurrentStep(4);
     } catch (err: any) {
-      setError(err?.data?.message || err?.data?.error || 'Failed to upload note');
+      const msg = err?.data?.message || err?.data?.error || 'Failed to upload note';
+      setError(msg);
+      toast({
+        title: "Upload failed",
+        description: msg,
+        variant: "destructive",
+      });
     }
   };
 
@@ -160,7 +211,7 @@ export function UploadNoteWizard({
           formData={formData}
           file={file}
           onFormDataChange={setFormData}
-          onFileChange={setFile}
+          onFileChange={handleFileChange}
         />
       )}
 
