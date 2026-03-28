@@ -8,6 +8,7 @@ interface UploadNavigationButtonsProps {
   onSubmit: () => void;
   isLastStep: boolean;
   isLoading?: boolean;
+  error?: string;
 }
 
 export function UploadNavigationButtons({
@@ -18,6 +19,7 @@ export function UploadNavigationButtons({
   onSubmit,
   isLastStep,
   isLoading,
+  error,
 }: UploadNavigationButtonsProps) {
   if (isLastStep) {
     return null;
@@ -28,6 +30,7 @@ export function UploadNavigationButtons({
       <Button variant="outline" onClick={onBack} disabled={currentStep === 1 || isLoading} className="min-h-11 w-full sm:w-auto">
         Back
       </Button>
+      {error && <p className="text-sm text-destructive order-last sm:order-none w-full sm:w-auto text-center sm:text-left">{error}</p>}
       <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row">
         {currentStep < totalSteps - 1 && <Button onClick={onNext} disabled={isLoading} className="min-h-11 w-full sm:w-auto">Next</Button>}
         {currentStep === totalSteps - 1 && (

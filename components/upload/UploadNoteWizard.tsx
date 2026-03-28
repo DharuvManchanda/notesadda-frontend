@@ -9,7 +9,7 @@ import { ReviewStep } from '@/components/upload/ReviewStep';
 import { UploadSuccessScreen } from '@/components/upload/UploadSuccessScreen';
 import { UploadNavigationButtons } from '@/components/upload/UploadNavigationButtons';
 import { notespitaraApi } from '@/store/services/notespitara';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 
 const STEPS = [
   { number: 1, label: 'Select Course' },
@@ -50,7 +50,6 @@ export function UploadNoteWizard({
   });
   const [file, setFile] = useState<File | null>(null);
   const [error, setError] = useState('');
-  const { toast } = useToast();
   const [uploadPdf, { isLoading: isUploading }] = notespitaraApi.useUploadPdfMutation();
 
   const handleFileChange = (selectedFile: File | null) => {
@@ -58,11 +57,7 @@ export function UploadNoteWizard({
       if (selectedFile.size > MAX_FILE_SIZE_BYTES) {
         const msg = "File size exceeds 10MB. You can't upload files above 10MB.";
         setError(msg);
-        toast({
-          title: "File too large",
-          description: msg,
-          variant: "destructive",
-        });
+        toast.error(msg);
         setFile(null);
         return;
       }
@@ -72,11 +67,7 @@ export function UploadNoteWizard({
       if (!isPdfFile) {
         const msg = 'Only PDF files are allowed';
         setError(msg);
-        toast({
-          title: "Invalid file type",
-          description: msg,
-          variant: "destructive",
-        });
+        toast.error(msg);
         setFile(null);
         return;
       }
@@ -90,11 +81,7 @@ export function UploadNoteWizard({
       if (!selectedUniversity || !selectedProgram || !selectedBranch || !selectedSemester || !selectedSubject) {
         const msg = 'Please select all fields';
         setError(msg);
-        toast({
-          title: "Selection required",
-          description: msg,
-          variant: "destructive",
-        });
+        toast.error(msg);
         return false;
       }
     } else if (step === 2) {
@@ -102,11 +89,7 @@ export function UploadNoteWizard({
         if (!error) {
           const msg = "Please upload a PDF file (Maximum 10MB allowed).";
           setError(msg);
-          toast({
-            title: "File required",
-            description: msg,
-            variant: "destructive",
-          });
+          toast.error(msg);
         }
         return false;
       }
@@ -114,11 +97,7 @@ export function UploadNoteWizard({
       if (!formData.title || !formData.description) {
         const msg = 'Please fill in all required fields';
         setError(msg);
-        toast({
-          title: "Incomplete details",
-          description: msg,
-          variant: "destructive",
-        });
+        toast.error(msg);
         return false;
       }
     }
@@ -153,20 +132,13 @@ export function UploadNoteWizard({
         body: payload as any,
       }).unwrap();
 
-      toast({
-        title: "Upload Successful",
-        description: "Your notes have been shared with the community.",
-      });
+      toast.success("Your notes have been shared with the community.");
       onUploadSuccess?.();
       setCurrentStep(4);
     } catch (err: any) {
       const msg = err?.data?.message || err?.data?.error || 'Failed to upload note';
       setError(msg);
-      toast({
-        title: "Upload failed",
-        description: msg,
-        variant: "destructive",
-      });
+      toast.error(msg);
     }
   };
 
@@ -189,7 +161,6 @@ export function UploadNoteWizard({
       </div>
 
       <UploadStepIndicator currentStep={currentStep} steps={STEPS} />
-      <ErrorAlert message={error} />
 
       {currentStep === 1 && (
         <AcademicSelectionStep
@@ -224,6 +195,10 @@ export function UploadNoteWizard({
         />
       )}
 
+      <div className="mt-6">
+        <ErrorAlert message={error} />
+      </div>
+
       <UploadNavigationButtons
         currentStep={currentStep}
         totalSteps={TOTAL_STEPS}
@@ -232,6 +207,7 @@ export function UploadNoteWizard({
         onSubmit={handleSubmit}
         isLastStep={currentStep === TOTAL_STEPS}
         isLoading={isUploading}
+        error={error}
       />
     </div>
   );

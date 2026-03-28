@@ -18,6 +18,7 @@ export function NoteDetailsStep({ formData, file, onFormDataChange, onFileChange
     const selectedFile = e.target.files?.[0];
     if (selectedFile) {
       onFileChange(selectedFile);
+      e.target.value = '';
     }
   };
 
