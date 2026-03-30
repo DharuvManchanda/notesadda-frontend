@@ -7,9 +7,11 @@ import { Button } from '@/components/ui/button';
 import { BookOpen, FolderTree, Users, Sparkles } from 'lucide-react';
 
 export const metadata = {
-  title: 'About - NotesPitara',
-  description:
-    'Learn about the mission, idea, and long-term vision behind NotesPitara.',
+  title: 'About Notes Pitara – Structured Academic Notes Platform',
+  description: 'Learn about Notes Pitara, a platform built to organize academic knowledge into a structured repository. Our mission is to make student notes accessible, searchable, and reusable.',
+  alternates: {
+    canonical: 'https://notespitara.com/about',
+  },
 };
 
 const beliefs = [

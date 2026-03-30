@@ -12,24 +12,48 @@ const _geist = Geist({ subsets: ["latin"] });
 const _geistMono = Geist_Mono({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: 'NotesPitara - Share and Discover College Notes',
-  description: 'A modern platform for college students to share, discover, and learn from notes across universities and programs.',
+  title: {
+    default: 'Notes Pitara – Find, Share & Organize Academic Notes',
+    template: '%s | Notes Pitara',
+  },
+  description: 'Notes Pitara is a structured academic platform where students can find, share, and organize notes by university, program, semester, and subject.',
+  keywords: ['student notes', 'academic notes', 'study material', 'university notes', 'semester notes', 'subject notes', 'exam preparation', 'notes sharing platform', 'India students'],
+  authors: [{ name: 'Notes Pitara Team' }],
+  creator: 'Notes Pitara',
+  publisher: 'Notes Pitara',
+  robots: {
+    index: true,
+    follow: true,
+  },
   icons: {
-    icon: [
+    icon: '/notespitara.jpg',
+    shortcut: '/notespitara.jpg',
+    apple: '/notespitara.jpg',
+  },
+  openGraph: {
+    type: 'website',
+    locale: 'en_IN',
+    url: 'https://notespitara.com',
+    siteName: 'Notes Pitara',
+    title: 'Notes Pitara – Structured Academic Notes Platform',
+    description: 'Find, share, and organize academic notes easily. Built for students to access reliable study resources.',
+    images: [
       {
-        url: '/notespitara.jpg',
-        media: '(prefers-color-scheme: light)',
-      },
-      {
-        url: '/notespitara.jpg',
-        media: '(prefers-color-scheme: dark)',
-      },
-      {
-        url: '/notespitara.jpg',
-        type: 'image/svg+xml',
+        url: 'https://notespitara.com/notespitara.jpg',
+        width: 1200,
+        height: 630,
+        alt: 'Notes Pitara – Structured Academic Notes Platform',
       },
     ],
-    apple: '/notespitara.jpg',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Notes Pitara – Academic Notes Platform',
+    description: 'Discover structured academic notes by subject, semester, and university.',
+    images: ['https://notespitara.com/notespitara.jpg'],
+  },
+  alternates: {
+    canonical: 'https://notespitara.com',
   },
 }
 

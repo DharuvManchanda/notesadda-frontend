@@ -15,9 +15,25 @@ import {
 } from 'lucide-react';
 
 export const metadata = {
-  title: 'NotesPitara - Structured Academic Notes for Students',
-  description:
-    'Explore structured academic notes by university, program, branch, semester, and subject. Discover reliable notes and contribute your own.',
+  title: 'Notes Pitara – Find, Share & Organize Academic Notes',
+  description: 'Notes Pitara is a structured academic platform where students can find, share, and organize notes by university, program, semester, and subject. Discover reliable study materials easily.',
+  keywords: ['student notes', 'academic notes', 'study material', 'university notes', 'semester notes', 'subject notes', 'exam preparation', 'notes sharing platform', 'India students'],
+  alternates: {
+    canonical: 'https://notespitara.com/',
+  },
+};
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'WebSite',
+  name: 'Notes Pitara',
+  url: 'https://notespitara.com',
+  description: 'A structured academic platform for students to find, share, and organize notes.',
+  potentialAction: {
+    '@type': 'SearchAction',
+    target: 'https://notespitara.com/explore?q={search_term_string}',
+    'query-input': 'required name=search_term_string',
+  },
 };
 
 const howItWorks = [
@@ -89,6 +105,10 @@ const featuredHighlights = [
 export default function HomePage() {
   return (
     <main>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       <div className="relative">
         <div className="pointer-events-none absolute inset-0 bg-grid opacity-[0.1]" />
         <Section className="pt-16 pb-12 md:pt-24 md:pb-16">

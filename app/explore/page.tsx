@@ -4,8 +4,11 @@ import { PageHeader } from '@/components/shared/PageHeader';
 import { UniversitiesList } from '@/components/shared/UniversitiesList';
 
 export const metadata = {
-  title: 'Explore Universities - NotesPitara',
-  description: 'Browse all universities and their academic programs available on NotesPitara.',
+  title: 'Explore Notes – Find Notes by Subject, Semester & University',
+  description: 'Explore structured academic notes by university, program, branch, semester, and subject. Quickly find reliable notes uploaded by students.',
+  alternates: {
+    canonical: 'https://notespitara.com/explore',
+  },
 };
 
 export default function ExplorePage() {
